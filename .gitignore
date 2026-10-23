@@ -1,0 +1,27 @@
+﻿# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
+
+# Local application data
+*.db
+*.sqlite3
+chroma_data/
+uploads/
+
+# Editor and OS files
+.vscode/
+.DS_Store
+Thumbs.db
