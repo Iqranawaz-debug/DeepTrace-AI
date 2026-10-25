@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+
+:root {
+  color-scheme: dark;
+  --bg-app: #001F3F; --bg-surface: #003366; --bg-sunken: #00152B;
+  --bg-raised: #0A3D70; --bg-selected: #005B96;
+  --text-default: #F2F6FA; --text-secondary: #A9BBD0; --text-muted: #8FA6C0;
+  --text-link: #5AA9FF; --text-on-primary: #FFFFFF;
+  --border-decor: #1B4B7C; --border-control: #6F93BD;
+  --accent-interactive: #007BFF; --accent-evidence: #AEEEEE; --focus-ring: #AEEEEE;
+  --status-success: #4ADE9F; --status-warning: #FFC857; --status-danger: #FF8A8A;
+  --status-contested: #C9A7FF;
+  --button-primary: #0066D9; --button-hover: #005BC4; --button-pressed: #0050AD;
+  --bg-scrim: rgba(0, 21, 43, .72);
+  --tint-danger: rgba(255, 138, 138, .14);
+}
+@theme inline {
+  --color-app: var(--bg-app); --color-surface: var(--bg-surface);
+  --color-secondary: var(--text-secondary); --color-control: var(--border-control);
+  --color-focus: var(--focus-ring);
+  --font-sans: 'IBM Plex Sans', system-ui, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', 'Cascadia Mono', Consolas, monospace;
+}
