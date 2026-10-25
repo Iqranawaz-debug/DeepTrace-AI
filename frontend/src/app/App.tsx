@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Tooltip from '@radix-ui/react-tooltip'
-import { ArrowRight, ChevronLeft, ChevronRight, Compass, Database, FlaskConical,
-  LayoutDashboard, Menu, Settings as SettingsIcon, ShieldCheck, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Compass, FlaskConical,
+  LayoutDashboard, Menu, Settings as SettingsIcon, X } from 'lucide-react'
+import { Dashboard } from '../features/investigations/Dashboard'
+import { InvestigationForm, UnsavedChanges } from '../features/investigations/InvestigationForm'
+import { InvestigationPage } from '../features/investigations/InvestigationPage'
 import { getHealth } from '../api/client'
-import { EmptyState, ErrorState, LoadingState } from '../components/States'
+import { ErrorState, LoadingState } from '../components/States'
 
 function Navigation({ close }: { close?: () => void }) {
   return <nav aria-label="Main"><Tooltip.Root><Tooltip.Trigger asChild><NavLink to="/" end onClick={close} aria-label="Dashboard">
@@ -33,30 +36,21 @@ function BackendStatus() {
   return <p className="connection" role="status"><span className="status-dot" />Local backend connected <span className="mono">/api/health</span></p>
 }
 
-function Dashboard() {
-  return <><div className="page-intro"><p className="eyebrow">Your research workspace</p>
-    <h1 tabIndex={-1}>Investigations</h1><p>Follow the question. Keep the evidence in view.</p></div>
-    <div className="list-header"><h2>Investigation library</h2><span className="label">Phase 1 · Foundation</span></div>
-    <EmptyState action={<Link className="button primary" to="/settings">Explore the foundation <ArrowRight size={16} aria-hidden="true" /></Link>} />
-    <div className="principles"><article><Database aria-hidden="true" /><h3>Stored on this computer</h3><p>SQLite provides local storage for future investigations.</p></article>
-      <article><ShieldCheck aria-hidden="true" /><h3>External providers disabled</h3><p>No questions or source content leave this application.</p></article>
-      <article><Compass aria-hidden="true" /><h3>Built for traceable research</h3><p>Sources, passages and cited reports are planned for later phases.</p></article></div>
-    <BackendStatus /></>
-}
-
 function SettingsPage() {
   return <><div className="page-intro"><p className="eyebrow">Local application</p><h1 tabIndex={-1}>Settings</h1>
     <p>A clear view of what this foundation can do.</p></div>
-    <section className="settings-card"><h2>Provider boundaries</h2><p>Mock / offline foundation. Research execution is not available.</p>
+    <section className="settings-card"><h2>Provider boundaries</h2><p>Mock / offline workspace. Research execution is not available.</p>
       <dl><div><dt>Gemini · language model</dt><dd>Disabled</dd></div><div><dt>Tavily · web search</dt><dd>Disabled</dd></div>
         <div><dt>Paid API usage</dt><dd>Disabled</dd></div><div><dt>Telemetry</dt><dd>Not collected</dd></div></dl>
       <p>Credentials cannot be entered in this version. Future live features will require explicit consent before sending data.</p></section>
     <section className="settings-card"><h2>Local storage</h2><p>SQLite stores application data in your local user application-data directory, outside this repository.</p>
-      <p>No research records are created by this foundation. Backups made during future schema upgrades remain on this computer.</p></section>
+      <p>Investigations and manual plans are saved on this computer. Backups made during schema upgrades remain here. Research execution is disabled.</p></section>
     <BackendStatus /></>
 }
 
-export function App() {
+export function App() { return <UnsavedChanges><Shell /></UnsavedChanges> }
+
+function Shell() {
   const location = useLocation()
   const main = useRef<HTMLElement>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -86,10 +80,10 @@ export function App() {
           <Dialog.Portal><Dialog.Overlay className="scrim" /><Dialog.Content className="mobile-nav"><Dialog.Title>DeepTrace AI</Dialog.Title>
             <Dialog.Description>Research you can trace.</Dialog.Description><Dialog.Close className="icon-button close" aria-label="Close navigation"><X aria-hidden="true" /></Dialog.Close>
             <Navigation close={() => setMobileOpen(false)} /></Dialog.Content></Dialog.Portal></Dialog.Root>
-        <span>Workspace</span><span className="header-slash">/</span><strong>{location.pathname === '/settings' ? 'Settings' : 'Dashboard'}</strong></div>
+        <span>Workspace</span><span className="header-slash">/</span><strong>{location.pathname === '/settings' ? 'Settings' : location.pathname === '/' ? 'Dashboard' : 'Investigation'}</strong></div>
         <span className="version mono">v0.1.0</span></header>
-        <div className="mode-banner"><FlaskConical size={16} aria-hidden="true" /><strong>Mock / offline foundation</strong><span>Research and external providers are disabled.</span></div>
-        <main id="main" ref={main}><Routes><Route path="/" element={<Dashboard />} /><Route path="/settings" element={<SettingsPage />} />
+        <div className="mode-banner"><FlaskConical size={16} aria-hidden="true" /><strong>Mock / offline workspace</strong><span>Research and external providers are disabled.</span></div>
+        <main id="main" ref={main}><Routes><Route path="/" element={<><Dashboard /><BackendStatus /></>} /><Route path="/new" element={<><div className="page-intro"><h1 tabIndex={-1}>New investigation</h1><p>Create a local draft. No provider calls.</p></div><InvestigationForm /><BackendStatus /></>} /><Route path="/investigations/:id" element={<><InvestigationPage key={location.pathname} /><BackendStatus /></>} /><Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<><h1 tabIndex={-1}>This page doesn’t exist</h1><Link to="/">Return to Dashboard</Link></>} /></Routes></main>
       </div>
     </div></Tooltip.Provider>

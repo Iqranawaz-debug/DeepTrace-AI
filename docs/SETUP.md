@@ -1,8 +1,8 @@
-# Phase 1 Windows setup
+# Windows setup — Phase 2
 
 Verified environment: Windows, PowerShell 7.6.5, Python 3.14.3, SQLite 3.50.4,
 Node 24.21.0, npm 11.19.0 and uv 0.13.4. Python 3.14 is the supported backend
-interpreter for this foundation. Runtime dependencies are recorded in `backend/uv.lock`;
+interpreter for this application. Runtime dependencies are recorded in `backend/uv.lock`;
 frontend dependencies are recorded in `frontend/package-lock.json`.
 
 ## Install
@@ -74,10 +74,10 @@ are inherited; the database is not encrypted.
 
 Startup and the `migrate` command both apply/verify numbered migrations.
 Migration 001 creates `settings` and `investigations`; the runner creates
-`schema_meta`. No seed investigations are inserted. Phase 1 accepts only
-draft investigations and mock/offline mode settings; later states and setting
-keys require migrations. The intended future record convention is UUID strings
-and UTC ISO-8601 timestamps. No investigation write API exists yet.
+`schema_meta`. Migration 002 adds optional descriptions and manual `plans` /
+`plan_items`. Existing migration 001 and records are preserved. No seed records
+are inserted. Investigations remain drafts, identified by UUIDs with UTC
+ISO-8601 timestamps. Readiness requires the current migration version.
 
 Each connection enables foreign keys and a 5-second busy timeout. WAL is enabled
 and verified during migration. `BEGIN IMMEDIATE` serializes migrations/writes;
@@ -100,22 +100,33 @@ owner approval. Do not delete data or edit old migration checksums to bypass an 
 
 This runs Ruff lint/format, mypy, pytest, ESLint, TypeScript, Vitest, production
 build and Edge browser tests. Individual commands are in `TESTING.md`.
-Browser tests require Microsoft Edge installed, use temporary fixture data under
+Browser tests require Microsoft Edge installed, use a unique synthetic fixture directory per invocation under
 `frontend/.cache`, and start/stop their own loopback servers. Close development
 servers first. Test databases never use the normal application data directory.
 
 ## Scope and privacy
 
-Phase 1 provides a dashboard empty state and informational Settings screen.
-Mock means providers are disabled; no simulated research engine or results exist.
-No credential-entry endpoint, hosted model call, web fetch, analytics, remote
-font, PDF pipeline, report generator or investigation CRUD workflow is included.
+Create an investigation from the Dashboard, enter its title and research question,
+then save. In its workspace, edit details and build a manual plan of up to eight
+steps. Move up/down controls reorder steps; Save plan persists the complete plan.
+Reopen an investigation with Continue editing. Saved work survives refresh.
+Details and plans have separate Save buttons. Unsaved edits remain in memory on
+failure; leaving or refreshing asks for confirmation. Do not discard them during
+conflict recovery until you have copied anything needed. Reload the saved version
+and reapply edits deliberately; automatic conflict merging is not provided.
 
-All API methods that could mutate data are rejected. Reads without Origin support
-CLI health checks; reads with an Origin must match the explicit local allowlist.
-Host values are restricted. Loopback is not authentication: malicious software
-running as the same OS user can access local files. A CSRF/session strategy must
-be implemented and tested before future write/credential endpoints are enabled.
+Mock means providers are disabled; manual plans are not AI results. No credentials,
+hosted calls, web fetch, analytics, remote fonts, PDF pipeline or reports are included.
+Investigation deletion and archive are unavailable.
+
+Workspace writes require an allowed Origin, Host, JSON content type and a valid
+X-DeepTrace-Token header. The frontend obtains a process-local token from
+/api/session into transient memory before saving. Tokens are never stored in browser
+storage, URLs or application logs; responses use no-store. Restarting the backend
+invalidates old tokens; retry fetches a new token. Reads without Origin still
+support CLI health checks; explicit origins must match the existing local allowlist.
+Loopback/token protection is not authentication against malicious software already
+running under the same operating-system account. No credential endpoints exist.
 
 The production frontend build is validated, but a packaged single-origin release
 server/installer remains deferred. Use the documented two-server development workflow.

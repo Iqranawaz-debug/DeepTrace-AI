@@ -6,7 +6,7 @@ export function EmptyState({ action }: { action: ReactNode }) {
     <div className="empty-icon"><Search size={48} strokeWidth={1.5} aria-hidden="true" /></div>
     <p className="eyebrow">A place for your questions</p>
     <h2 id="empty-title">No investigations yet</h2>
-    <p>Your research begins with a question.<br />Investigation creation will arrive in a later phase.</p>
+    <p>Your research begins with a question.<br />Create a local draft and build your manual research plan.</p>
     {action}
   </section>
 }

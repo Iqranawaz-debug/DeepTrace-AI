@@ -6,7 +6,8 @@ and evidence-backed reporting.
 
 ## Status
 
-Project initialization completed. Development will proceed in phases.
+Phase 2 provides a local investigation workspace and manual research planning.
+Research execution and external integrations remain disabled.
 
 ## Planned Technology Stack
 
@@ -18,14 +19,17 @@ Project initialization completed. Development will proceed in phases.
 - Database: SQLite
 - Testing: Pytest, Vitest
 
-## Phase 1 foundation
+## Local workspace
 
-The local, mock/offline foundation implements a responsive Chart Room shell,
-read-only health/readiness API, and minimal checksummed SQLite migrations.
+The local, mock/offline application implements a responsive Chart Room shell,
+investigation creation/search/editing and manual plans with up to eight ordered
+steps. SQLite persists saved work; stale updates are rejected without overwriting
+newer changes. The existing health/readiness API remains available.
 Research execution and external provider integrations are unavailable.
 
 See [Windows setup](docs/SETUP.md), [validation](docs/TESTING.md), and
 [dependency licenses and notices](docs/DEPENDENCY_LICENSES.md).
+See [Phase 2 handoff](docs/PHASE2_HANDOFF.md) for API contracts and limitations.
 
 The original planned-stack list above predates the approved integration and
 architecture decisions: LangGraph is deferred; future PDF processing uses

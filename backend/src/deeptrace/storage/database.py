@@ -91,5 +91,6 @@ class Database:
     def ready(self) -> bool:
         with self.connection() as connection:
             return bool(
-                connection.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0] == 1
+                connection.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0]
+                == len(list(MIGRATIONS.glob("[0-9][0-9][0-9]_*.sql")))
             )
