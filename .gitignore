@@ -25,3 +25,17 @@ uploads/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Foundation tooling and SQLite sidecars
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+*.tsbuildinfo
+*.db-wal
+*.db-shm
+*.sqlite3-wal
+*.sqlite3-shm
+data/
+.cache/
+test-results/
+playwright-report/

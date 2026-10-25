@@ -1,0 +1,5 @@
+# Migration checksums must remain stable across Windows and Unix checkouts.
+*.sql text eol=lf
+
+# Preserve upstream license text verbatim; waive only trailing-space checks here.
+/docs/THIRD_PARTY_NOTICES.txt whitespace=-blank-at-eol
