@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 
 export default defineConfig({
   testDir: './e2e', workers: 1, reporter: 'list',
@@ -7,6 +8,6 @@ export default defineConfig({
   webServer: [
     { command: 'npm run dev', url: 'http://127.0.0.1:5173', reuseExistingServer: false },
     { command: `"${path.resolve('../backend/.venv/Scripts/python.exe')}" -m deeptrace serve`, url: 'http://127.0.0.1:8000/api/ready',
-      env: { DEEPTRACE_DATA_DIR: path.resolve('.cache/browser-data') }, reuseExistingServer: false },
+      env: { DEEPTRACE_DATA_DIR: path.resolve('.cache', `browser-${randomUUID()}`) }, reuseExistingServer: false },
   ],
 })

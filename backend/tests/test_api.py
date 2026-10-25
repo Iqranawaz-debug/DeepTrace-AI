@@ -21,11 +21,11 @@ def test_health_readiness_capabilities(client):
     assert client.get("/api/health").json()["status"] == "ok"
     assert client.get("/api/ready").json()["status"] == "ready"
     assert client.get("/api/capabilities").json() == {
-        "phase": 1,
+        "phase": 2,
         "mode": "mock",
         "research": False,
         "outbound": False,
-        "investigations": False,
+        "investigations": True,
     }
     assert client.get("/api/health").headers["x-content-type-options"] == "nosniff"
 
@@ -132,4 +132,4 @@ def test_offline_mode_has_no_provider_execution(tmp_path):
     with TestClient(app, base_url="http://127.0.0.1:8000") as client:
         assert client.get("/api/capabilities").json()["outbound"] is False
         assert client.get("/api/capabilities").json()["mode"] == "offline"
-        assert client.post("/api/investigations").status_code == 405
+        assert client.post("/api/investigations").status_code == 403
