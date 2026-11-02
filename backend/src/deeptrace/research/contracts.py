@@ -24,8 +24,9 @@ RETRYABLE = frozenset({"rate_limited", "unavailable", "timeout"})
 class ProviderError(Exception):
     """Carries a fixed category only: never provider bodies, keys or research text."""
 
-    def __init__(self, category: Category):
+    def __init__(self, category: Category, retry_after: float | None = None):
         self.category: Category = category
+        self.retry_after = retry_after
         super().__init__(category)
 
 

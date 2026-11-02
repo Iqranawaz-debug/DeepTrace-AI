@@ -2,10 +2,12 @@
 
 import json
 import logging
+import logging.handlers
 import secrets
 import sqlite3
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
@@ -45,6 +47,26 @@ from deeptrace.storage.repository import WorkspaceError
 from deeptrace.storage.research_repository import ResearchRepository
 
 logger = logging.getLogger("deeptrace")
+LOG_MAX_BYTES = 1_000_000
+LOG_BACKUPS = 3
+
+
+def rotating_log(directory: Path) -> logging.Handler | None:
+    """NFR-O1: bounded local log. Every message is a fixed event, never research or secrets."""
+    try:
+        (directory / "logs").mkdir(parents=True, exist_ok=True)
+        handler = logging.handlers.RotatingFileHandler(
+            directory / "logs" / "deeptrace.log",
+            maxBytes=LOG_MAX_BYTES,
+            backupCount=LOG_BACKUPS,
+            encoding="utf-8",
+        )
+    except OSError:
+        return None  # Logging must never stop the application.
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    return handler
 
 
 def error(status: int, code: str, message: str) -> JSONResponse:
@@ -141,12 +163,16 @@ def create_app(
         except Exception:
             logger.error('{"event":"startup_failed"}')
             raise RuntimeError("Database initialization failed; inspect migration setup.") from None
+        log_file = rotating_log(config.data_dir)
         worker.start()
         try:
             yield
         finally:
             gateway.stop.set()
             worker.close()
+            if log_file:
+                logger.removeHandler(log_file)
+                log_file.close()
 
     app = FastAPI(
         title="DeepTrace AI",
@@ -166,6 +192,7 @@ def create_app(
     app.state.fixture_collection = fixtures
     app.state.collection_repository = collection_repository
     app.state.gateway = gateway
+    app.state.storage_warning_bytes = config.storage_warning_mb * 1_000_000
     app.state.collection_worker = worker
     app.add_middleware(
         CORSMiddleware,

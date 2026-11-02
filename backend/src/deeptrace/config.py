@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DEEPTRACE_", env_file=".env", extra="forbid")
     mode: Literal["mock", "offline", "live_free"] = "mock"
     llm_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,80}$")
+    storage_warning_mb: int = Field(default=500, ge=1, le=100_000)
     allow_paid_apis: Literal[False] = False
     host: Literal["127.0.0.1"] = "127.0.0.1"
     port: int = Field(default=8000, ge=1024, le=65535)

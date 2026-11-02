@@ -44,6 +44,7 @@ function SettingsPage() {
     <p>Providers, consent and what stays on this computer.</p></div>
     <ProviderSetup />
     <section className="settings-card"><h2>Local storage</h2><p>SQLite stores application data in your local user application-data directory, outside this repository.</p>
+      <p>Your investigations are stored on this computer. Searches, page requests and selected text still go to the providers you configure.</p>
       <p>Investigations, plans, sources and reports are saved on this computer. Backups made during schema upgrades remain in the data folder. API keys are kept in Windows Credential Manager, never in the database.</p></section>
     <BackendStatus /></>
 }

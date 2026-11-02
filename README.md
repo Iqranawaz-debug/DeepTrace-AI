@@ -1,44 +1,61 @@
 ﻿# DeepTrace AI
 
-An agentic AI research platform for multi-source investigation,
-document intelligence, retrieval-augmented generation (RAG),
-and evidence-backed reporting.
+A local-first research workspace. You ask a question, DeepTrace plans bounded
+research, saves exactly what each source said, drafts a cited answer, and produces
+a versioned Markdown report you can check claim by claim.
 
 ## Status
 
-Phase 3 adds synthetic evidence collection, persistent run history, immutable
-source snapshots, provenance-aware passages and saved (never retrieved) URLs.
-Phase 4 adds user-authored evidence review, citation-checked report drafts and
-immutable, downloadable Markdown report versions. No AI model is used.
-M1 adds a bounded research pipeline with generated plans, cited answers and reports. It works
-fully in mock mode. Live Tavily, Gemini and web retrieval are opt-in and have not yet been
-exercised against real services. See [M1 handoff](docs/M1_HANDOFF.md).
+Milestone 1 (the first working vertical slice) is complete **in mock mode**, which is
+the default. It runs on simulated providers and synthetic sample pages, so nothing
+leaves your computer and nothing it produces is real research.
 
-## Planned Technology Stack
+Live research through Tavily, Gemini and public websites is built and opt-in, but it
+**has not yet been run against the real services**. See [M1 handoff](docs/M1_HANDOFF.md)
+for the procedure, known limitations and differences from the specifications.
 
-- Frontend: React, TypeScript, Vite, Tailwind CSS
-- Backend: Python, FastAPI
-- AI Orchestration: LangGraph
-- Document Processing: PyMuPDF
-- Vector Database: ChromaDB
-- Database: SQLite
-- Testing: Pytest, Vitest
+PDFs and semantic search (M2), automated support assessment and resuming runs (M3),
+and release hardening (M4) are not built yet.
 
-## Local workspace
+## What works today
 
-The local, mock/offline application implements a responsive Chart Room shell,
-investigation creation/search/editing and manual plans with up to eight ordered
-steps. SQLite persists saved work; stale updates are rejected without overwriting
-newer changes. The existing health/readiness API remains available.
-Mock collection uses application-owned fixtures only; offline mode permits saved
-evidence reads. No real website or provider is contacted.
+- Create, edit, search, archive and delete investigations.
+- Write a research plan, or generate one and edit it.
+- See and adjust run limits, then start, follow and cancel research.
+- Findings marked **Cited** or **Not established**. Invalid citations are suppressed.
+- Open any citation to see the saved passage, its source and what was checked.
+- Download immutable Markdown reports, including a labelled partial report when a
+  run hits a limit.
+- Write your own evidence reviews and citation-checked reports.
 
-See [Windows setup](docs/SETUP.md), [validation](docs/TESTING.md), and
-[dependency licenses and notices](docs/DEPENDENCY_LICENSES.md).
-See [Phase 3 handoff](docs/PHASE3_HANDOFF.md) and [Phase 4 handoff](docs/PHASE4_HANDOFF.md)
-for API contracts, recorded spec deviations, validation and limitations.
+A valid citation shows that a passage exists and any quotation matches it. It does
+not show that the passage supports the claim.
 
-The original planned-stack list above predates the approved integration and
-architecture decisions: LangGraph is deferred; future PDF processing uses
-pypdf/pypdfium2 and future vectors use SQLite/NumPy. None is installed in Phase 1.
-The five specifications remain unchanged.
+## Technology
+
+| Area | Choice |
+|---|---|
+| Frontend | React, TypeScript, Vite, Tailwind CSS |
+| Backend | Python 3.14, FastAPI |
+| Storage | SQLite (WAL, checksummed migrations) |
+| Text extraction | Beautiful Soup with Python's `html.parser` |
+| Live search and model (opt-in) | Tavily and Gemini, using your own free-tier keys |
+| Tests | Pytest, Vitest, Playwright with Microsoft Edge |
+
+Planned for M2: `pypdf` and `pypdfium2` for PDFs, local FastEmbed embeddings, and
+exact vector search with SQLite and NumPy.
+
+## Documentation
+
+- [Windows setup](docs/SETUP.md)
+- [Validation results](docs/TESTING.md)
+- [Dependency licenses and notices](docs/DEPENDENCY_LICENSES.md)
+- Handoffs: [M1](docs/M1_HANDOFF.md), [Phase 4](docs/PHASE4_HANDOFF.md),
+  [Phase 3](docs/PHASE3_HANDOFF.md), [Phase 2](docs/PHASE2_HANDOFF.md),
+  [Phase 1](docs/PHASE1_HANDOFF.md)
+- Specifications: [PRD](PRD.md), [Design](docs/DESIGN.md),
+  [Integrations](docs/INTEGRATIONS.md), [Architecture](docs/ARCHITECTURE.md),
+  [Database](docs/DATABASE.md)
+
+The handoffs and test records describe each phase as it stood at the time; the latest
+one takes precedence. The application is licensed under Apache-2.0.

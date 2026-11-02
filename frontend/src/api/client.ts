@@ -147,8 +147,9 @@ export async function createReport(id: string, revision: number) { return checke
 export const reportDownloadUrl = (id: string, version: number) => `${base(id)}/reports/${version}/download`
 
 // M1: research pipeline, provider setup and investigation lifecycle.
-export interface Progress { status: string; error_code: string | null; cancel_requested: boolean; mode: string; scope: string; budgets: Budgets | null; narrow_reason: string | null; stages: { stage_key: string; stage_revision: number; status: string; completed_at: string | null; error_code: string | null }[]; usage: { search_attempts: number; model_attempts: number; pages_retrieved: number; estimated_tokens: number } }
-export interface GeneratedCitation { passage_id: string; display_id: string; source_id: string; source_title: string | null; original_url: string; fetched_at: string | null; quoted_text: string | null; start_offset: number; end_offset: number; passage_text: string; reference_valid: boolean; quote_valid: boolean | null; invalid_reason: string | null }
+export interface Progress { status: string; error_code: string | null; cancel_requested: boolean; mode: string; scope: string; budgets: Budgets | null; narrow_reason: string | null; queries: { query_text: string; status: string; searched_at: string | null; results_count: number | null }[]; stages: { stage_key: string; stage_revision: number; status: string; completed_at: string | null; error_code: string | null }[]; usage: { search_attempts: number; model_attempts: number; pages_retrieved: number; pages_attempted: number; estimated_tokens: number } }
+export interface RunEvent { id: string; event_type: string; created_at: string }
+export interface GeneratedCitation { passage_id: string; display_id: string; source_id: string; source_title: string | null; source_status?: string; original_url: string; fetched_at: string | null; quoted_text: string | null; start_offset: number; end_offset: number; passage_text: string; reference_valid: boolean; quote_valid: boolean | null; invalid_reason: string | null }
 export interface GeneratedClaim { ordinal: number; claim_text: string; evidence_state: 'cited' | 'not_established'; explanation: string | null; citations: GeneratedCitation[] }
 export interface GeneratedAnswer { run_id: string; provider_id: string; model_id: string; prompt_version: string; generated_at: string; mode: string; status: string; summary_text: string; limitations_text: string | null; needed_evidence_text: string | null; suppressed_citations: number; claims: GeneratedClaim[] }
 export interface GeneratedReportSummary { version_no: number; run_id: string; created_at: string; markdown_sha256: string; mode: string; prompt_version: string; report_schema_version: string; validation_summary: Record<string, number> }
@@ -169,6 +170,14 @@ export async function getGeneratedAnswer(id: string) {
 }
 export async function listGeneratedReports(id: string) { return checked(await request(`${base(id)}/generated-reports`), arrayOf(generatedSummary)) }
 export async function getGeneratedReport(id: string, version: number) { return checked(await request(`${base(id)}/generated-reports/${version}`), generatedReport) }
+function runEvent(value: unknown): value is RunEvent { return record(value) && strings(value, ['id', 'event_type', 'created_at']) }
+export async function getRunEvents(run: string, investigation: string) { return checked(await request(`${base(investigation)}/events?run_id=${encodeURIComponent(run)}`), arrayOf(runEvent)) }
+export interface Storage { bytes: number; warning_bytes: number; over_warning: boolean }
+export async function getStorage(id: string): Promise<Storage> {
+  const value = await request(`${base(id)}/storage`)
+  if (!record(value) || typeof value.bytes !== 'number' || typeof value.warning_bytes !== 'number' || typeof value.over_warning !== 'boolean') throw new ApiError(502)
+  return value as unknown as Storage
+}
 export const generatedDownloadUrl = (id: string, version: number) => `${base(id)}/generated-reports/${version}/download`
 export async function setSensitive(id: string, value: boolean) { await request(`${base(id)}/sensitive`, 'POST', { value }) }
 export async function setArchived(id: string, value: boolean) { await request(`${base(id)}/archive`, 'POST', { value }) }

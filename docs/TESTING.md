@@ -1,3 +1,15 @@
+# Validation records
+
+Records are kept in the order they were added, so **the latest results are the last
+section of this file**. Earlier sections are history: their counts and statements
+describe the project at that time and are not current.
+
+To run every gate, from the repository root and without redirecting its output:
+
+```powershell
+.\scripts\check.ps1
+```
+
 # Phase 2 validation
 
 Final checks executed 2026-10-25 on Windows, Python 3.14.3 / SQLite 3.50.4.
@@ -302,3 +314,22 @@ synthetic value to Windows Credential Manager under a random test name, then del
 **Not run:** any real Tavily, Gemini or public-website request (no keys; see M1_HANDOFF.md).
 The production and TLS checks are scratch scripts and are not part of `check.ps1`. A manual
 keyboard or NVDA audit, penetration test and CVE scan are not claimed.
+
+## M1 follow-up validation (executed 2026-11-02)
+
+After the missed M1 requirements were fixed. `.\scripts\check.ps1`, unredirected, exit 0.
+
+| Check | Result |
+|---|---|
+| Backend lint / format / types | Passed |
+| Backend tests | **290 passed** |
+| Frontend lint / types / build | Passed |
+| Components | **34 passed**, 6 files |
+| Real browser | **7 passed**, Edge 156.0.4314.50 |
+| License audit | Passed, 374 / 328; outputs byte-identical |
+| Python lock | Passed, 34 packages |
+| Production-only smoke (scratch script) | Passed; httpx, httpcore and certifi absent |
+
+New: `test_m1_gaps.py` covers partial reports, `Retry-After`, log rotation and the storage
+warning. `Research.test.tsx` and `m1-research.spec.ts` cover the tracker, activity log, cancel
+confirmation and evidence view. **Still not run:** any real Tavily, Gemini or website request.

@@ -28,6 +28,7 @@ class GeneratedInput:
     mode: str
     version_no: int
     created_at: str
+    stopped: str | None = None
 
 
 def counts(report: GeneratedInput) -> dict[str, int]:
@@ -55,6 +56,13 @@ def render(report: GeneratedInput) -> str:
             "> **SIMULATED RESEARCH.** This report was produced by mock providers from "
             "application-owned synthetic fixtures. It contains no real research and supports "
             "no conclusions about the world.",
+            "",
+        ]
+    if report.stopped:
+        lines += [
+            f"> **PARTIAL REPORT.** Stopped: {escape(report.stopped)} reached. No answer was "
+            "drafted and no language model was used for this report. Partial results are shown "
+            "and may be incomplete.",
             "",
         ]
     lines += [

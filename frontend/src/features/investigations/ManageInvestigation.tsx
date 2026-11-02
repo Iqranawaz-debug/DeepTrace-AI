@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as Dialog from '@radix-ui/react-dialog'
-import { ApiError, deleteInvestigation, setArchived, setSensitive, type Investigation } from '../../api/client'
+import { ApiError, deleteInvestigation, getStorage, setArchived, setSensitive, type Investigation, type Storage } from '../../api/client'
 
 export function ManageInvestigation({ investigation, onChanged }: { investigation: Investigation; onChanged: () => void }) {
   const navigate = useNavigate()
@@ -9,7 +9,15 @@ export function ManageInvestigation({ investigation, onChanged }: { investigatio
   const [error, setError] = useState('')
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState('')
+  const [storage, setStorage] = useState<Storage>()
   const archived = !!investigation.archived_at
+  const megabytes = (bytes: number) => (bytes / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 1 })
+  useEffect(() => {
+    let active = true
+    // Informational only: a failed size check must never block managing the investigation.
+    getStorage(investigation.id).then(value => { if (active) setStorage(value) }).catch(() => {})
+    return () => { active = false }
+  }, [investigation.id, investigation.updated_at])
   async function act(work: () => Promise<unknown>) {
     setBusy(true); setError('')
     try { await work(); onChanged() }
@@ -24,6 +32,8 @@ export function ManageInvestigation({ investigation, onChanged }: { investigatio
   }
   return <section className="settings-card" aria-labelledby="manage-title"><h2 id="manage-title">Manage</h2>
     <p>Status: <strong>{investigation.lifecycle ?? 'Draft'}</strong></p>
+    {storage && <p className="record-dates">Saved text: {megabytes(storage.bytes)} MB</p>}
+    {storage?.over_warning && <p role="status" className="mode-note">This investigation stores over {megabytes(storage.warning_bytes)} MB of text. Consider deleting what you no longer need.</p>}
     <label className="check-row"><input type="checkbox" checked={!!investigation.sensitive} disabled={busy} onChange={event => void act(() => setSensitive(investigation.id, event.target.checked))} /> Mark sensitive: never send this investigation’s question or passages to a hosted model</label>
     <div className="actions"><button className="button secondary" disabled={busy} onClick={() => void act(() => setArchived(investigation.id, !archived))}>{archived ? 'Unarchive' : 'Archive'}</button>
       <Dialog.Root open={open} onOpenChange={value => { setOpen(value); setTyped('') }}><Dialog.Trigger asChild><button className="button secondary">Delete investigation</button></Dialog.Trigger>

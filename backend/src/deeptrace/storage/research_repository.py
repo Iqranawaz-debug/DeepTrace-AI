@@ -334,6 +334,7 @@ class ResearchRepository:
         model: str,
         prompt_version: str,
         render: Callable[[int, str], tuple[str, str, dict[str, int]]],
+        partial: bool = False,
     ) -> int:
         """Answer, claims, citations, report and checkpoints commit together or not at all."""
         investigation = run["investigation_id"]
@@ -351,7 +352,7 @@ class ResearchRepository:
                     provider,
                     model,
                     now,
-                    "partial" if suppressed else "validated",
+                    "partial" if suppressed or partial else "validated",
                     run["mode"],
                     summary,
                     limitations,
@@ -445,6 +446,14 @@ class ResearchRepository:
             pages = con.execute(
                 "SELECT COUNT(*) FROM sources WHERE run_id=? AND fetched_at IS NOT NULL", (run,)
             ).fetchone()[0]
+            attempted = con.execute(
+                "SELECT COUNT(*) FROM sources WHERE run_id=?", (run,)
+            ).fetchone()[0]
+            queries = con.execute(
+                "SELECT query_text,status,searched_at,results_count FROM search_queries "
+                "WHERE run_id=? ORDER BY searched_at,rowid LIMIT 40",
+                (run,),
+            ).fetchall()
             snapshot = json.loads(row["config_snapshot_json"])
             tokens = sum(
                 json.loads(u["estimated_units_json"]).get("tokens", 0)
@@ -467,6 +476,7 @@ class ResearchRepository:
                 "scope": snapshot.get("scope", "evidence_collection"),
                 "budgets": snapshot.get("budgets"),
                 "narrow_reason": narrow,
+                "queries": [dict(query) for query in queries],
                 "stages": [
                     {
                         "stage_key": s["stage_key"],
@@ -481,6 +491,7 @@ class ResearchRepository:
                     "search_attempts": sum(u["operation"] == "search" for u in usage),
                     "model_attempts": sum(u["operation"] in {"plan", "synthesize"} for u in usage),
                     "pages_retrieved": pages,
+                    "pages_attempted": attempted,
                     "estimated_tokens": tokens,
                 },
             }
@@ -502,7 +513,8 @@ class ResearchRepository:
                 citations = []
                 for cite in con.execute(
                     "SELECT c.quoted_text,c.passage_sha256,p.id,p.display_id,p.text,p.removed_at,"
-                    "p.start_offset,p.end_offset,p.source_id,s.title,s.original_url,s.fetched_at "
+                    "p.start_offset,p.end_offset,p.source_id,s.title,s.original_url,s.fetched_at,"
+                    "s.status AS source_status "
                     "FROM generated_citations c JOIN passages p ON p.id=c.passage_id AND "
                     "p.investigation_id=c.investigation_id JOIN sources s ON s.id=p.source_id AND "
                     "s.investigation_id=p.investigation_id WHERE c.claim_id=? ORDER BY c.ordinal",
@@ -523,6 +535,7 @@ class ResearchRepository:
                             "display_id": cite["display_id"],
                             "source_id": cite["source_id"],
                             "source_title": cite["title"],
+                            "source_status": cite["source_status"],
                             "original_url": cite["original_url"],
                             "fetched_at": cite["fetched_at"],
                             "quoted_text": cite["quoted_text"],
@@ -607,6 +620,25 @@ class ResearchRepository:
             }
 
     # Investigation lifecycle -----------------------------------------------------
+
+    def storage_bytes(self, investigation: str) -> int:
+        """Text this investigation keeps in SQLite (UTF-8 bytes), excluding index overhead."""
+        with self.db.connection() as con:
+            lookup(con, investigation)
+            total = 0
+            for table, column in (
+                ("sources", "extracted_text"),
+                ("passages", "text"),
+                ("generated_reports", "markdown_text"),
+                ("report_versions", "markdown_text"),
+            ):
+                # Table and column names are internal constants, never request strings.
+                total += con.execute(
+                    f"SELECT COALESCE(SUM(length(CAST({column} AS BLOB))),0) "  # noqa: S608
+                    f"FROM {table} WHERE investigation_id=?",
+                    (investigation,),
+                ).fetchone()[0]
+            return int(total)
 
     def set_sensitive(self, investigation: str, sensitive: bool) -> None:
         with self.db.transaction() as con:

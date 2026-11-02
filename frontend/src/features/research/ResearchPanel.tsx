@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import * as Dialog from '@radix-ui/react-dialog'
 import { ApiError, cancelCollection, generatePlan, getPlan, getProgress, getProviders, listRuns, startResearch, type Budgets, type CollectionRun, type Plan, type Progress, type Providers } from '../../api/client'
 import { GeneratedResults } from './GeneratedResults'
+import { ActivityLog, ResearchTracker } from './ResearchTracker'
 
 const ACTIVE = ['queued', 'running']
-const STAGES: Record<string, string> = { plan: 'Plan generated', discover: 'Searched', fetch: 'Pages fetched', rank: 'Passages ranked', synthesize: 'Answer drafted', validate: 'Citations checked', report: 'Report saved' }
 const BUDGET_LABELS: Record<keyof Budgets, string> = { max_searches: 'Search calls', max_pages: 'Pages fetched', max_steps: 'Workflow steps', max_tokens: 'Estimated tokens', max_minutes: 'Minutes' }
 const FAILURES: Record<string, string> = {
   auth_rejected: 'The provider rejected the API key. Check it in Settings.',
@@ -23,6 +24,16 @@ const FAILURES: Record<string, string> = {
   process_interrupted: 'The application stopped during this run.',
   worker_failure: 'An unexpected local error stopped this run.',
 }
+/** DESIGN §9.6 status messages: what happened and what was kept. */
+function banner(status: string, code: string | null): string {
+  const reason = code ? FAILURES[code] ?? 'This run stopped early.' : ''
+  if (status === 'completed') return 'Research completed. Review the report and the limitations.'
+  if (status === 'cancelled') return 'You cancelled this run. Saved evidence is kept.'
+  if (status === 'interrupted') return "This run stopped when the app closed. Completed steps and sources are saved. Resume isn't available in this version."
+  if (status === 'budget_reached') return `${reason} Partial results are shown and may be incomplete.`
+  if (status === 'failed') return `${reason || 'This run failed.'} Everything saved so far is kept. You can start a new run after fixing this.`
+  return ''
+}
 const STATUS_TEXT: Record<string, string> = { completed: 'Completed', failed: 'Failed', cancelled: 'Cancelled', budget_reached: 'Budget reached', interrupted: 'Interrupted', queued: 'Queued', running: 'Running' }
 
 export function ResearchPanel({ investigationId, plan, sensitive, archived, onPlanGenerated }: { investigationId: string; plan: Plan; sensitive: boolean; archived: boolean; onPlanGenerated: () => void }) {
@@ -36,6 +47,7 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
   const [notice, setNotice] = useState('')
   const [planReady, setPlanReady] = useState(false)
   const [resultKey, setResultKey] = useState(0)
+  const [confirming, setConfirming] = useState(false)
   const key = useRef<{ action: string; id: string } | null>(null)
   const lastActive = useRef<string | null>(null)
   const pipelineRuns = runs.filter(run => run.scope && run.scope !== 'evidence_collection')
@@ -102,7 +114,7 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
     {planReady && <p role="status" className="mode-note">The generated plan is saved{progress?.narrow_reason ? ` (${progress.narrow_reason})` : ''}. <button className="button secondary" onClick={() => { setPlanReady(false); setReplace(false); onPlanGenerated() }}>Show generated plan</button></p>}
 
     <h3>2. Limits</h3>
-    <p>Source types: web pages (HTML and plain text). JavaScript is not run. These are upper limits, not targets; a run stops with “Budget reached” and keeps what it found.</p>
+    <p>Limits are ceilings, not targets. Source types: web pages (HTML and plain text). JavaScript is not run. A run stops with “Budget reached” and keeps what it found.</p>
     {budgets && providers?.budget_ceilings && <div className="budget-grid">{(Object.keys(BUDGET_LABELS) as (keyof Budgets)[]).map(name => <label key={name} className="field">{BUDGET_LABELS[name]}<input type="number" min={name === 'max_tokens' ? 1000 : 1} max={providers.budget_ceilings?.[name]} value={budgets[name]} onChange={event => setBudgets({ ...budgets, [name]: Number(event.target.value) })} /><span>Up to {providers.budget_ceilings?.[name].toLocaleString()}</span></label>)}</div>}
 
     <h3>3. Start</h3>
@@ -110,12 +122,16 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert" className="error-state">{error}</p>}
 
-    {latest && <div className="run-status" aria-live="polite"><h3>Latest run</h3>
+    {latest && <div className="run-status"><h3>Latest run</h3>
       <p><strong>{latest.mode === 'mock' ? 'SIMULATED · ' : ''}{progress?.cancel_requested && ACTIVE.includes(latest.status) ? 'Cancelling' : STATUS_TEXT[latest.status] ?? latest.status}</strong> · {latest.scope === 'plan_generation' ? 'Plan generation' : 'Research'}</p>
-      {latest.error_code && <p>{FAILURES[latest.error_code] ?? 'This run stopped early.'} Everything saved so far is kept.</p>}
-      {progress && <><ul className="stage-list">{progress.stages.filter(stage => STAGES[stage.stage_key]).map(stage => <li key={`${stage.stage_key}-${stage.stage_revision}`}>{STAGES[stage.stage_key]}</li>)}</ul>
-        <p className="record-dates">Search attempts {progress.usage.search_attempts} · pages retrieved {progress.usage.pages_retrieved} · model attempts {progress.usage.model_attempts} · about {progress.usage.estimated_tokens.toLocaleString()} tokens (estimate)</p></>}
-      {ACTIVE.includes(latest.status) && <button className="button secondary" disabled={busy || progress?.cancel_requested} onClick={() => void cancelCollection(latest.id, investigationId).then(refresh).catch(() => setError('Cancellation could not be confirmed. Retry.'))}>{progress?.cancel_requested ? 'Cancelling…' : 'Cancel run'}</button>}
+      {banner(latest.status, latest.error_code) && latest.scope === 'research_pipeline' && <p role="status" className="mode-note">{banner(latest.status, latest.error_code)}</p>}
+      {latest.scope !== 'research_pipeline' && latest.error_code && <p>{FAILURES[latest.error_code] ?? 'This run stopped early.'} Everything saved so far is kept.</p>}
+      {progress && <>{latest.scope === 'research_pipeline' && progress.scope === 'research_pipeline' && <ResearchTracker progress={progress} />}
+        <p className="record-dates">Search attempts {progress.usage.search_attempts} · pages retrieved {progress.usage.pages_retrieved} · model attempts {progress.usage.model_attempts} · about {progress.usage.estimated_tokens.toLocaleString()} tokens (estimate)</p>
+        <ActivityLog runId={latest.id} investigationId={investigationId} progress={progress} /></>}
+      {ACTIVE.includes(latest.status) && <Dialog.Root open={confirming} onOpenChange={setConfirming}><Dialog.Trigger asChild><button className="button secondary" disabled={busy || progress?.cancel_requested}>{progress?.cancel_requested ? 'Cancelling…' : 'Cancel'}</button></Dialog.Trigger>
+        <Dialog.Portal><Dialog.Overlay className="scrim" /><Dialog.Content className="unsaved-dialog"><Dialog.Title>Cancel this run?</Dialog.Title><Dialog.Description>Evidence collected so far is kept.</Dialog.Description>
+          <div className="actions"><Dialog.Close className="button secondary">Keep running</Dialog.Close><button className="button primary" onClick={() => { setConfirming(false); void cancelCollection(latest.id, investigationId).then(refresh).catch(() => setError('Cancellation could not be confirmed. Retry.')) }}>Cancel run</button></div></Dialog.Content></Dialog.Portal></Dialog.Root>}
     </div>}
     <GeneratedResults key={resultKey} investigationId={investigationId} />
   </section>

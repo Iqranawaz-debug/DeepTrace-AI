@@ -324,7 +324,7 @@ def test_tavily_request_contract_and_failure_categories():
         return 200, json.dumps({"results": [
             {"url": "https://a.example/", "title": "A", "content": "snippet is not evidence"},
             {"title": "no url"},
-        ]}).encode()  # fmt: skip
+        ]}).encode(), {}  # fmt: skip
 
     leads = TavilySearch(lambda: "synthetic-key", poster).search("q", 3, 1)
     assert sent["host"] == "api.tavily.com" and sent["target"] == "/search"
@@ -335,9 +335,9 @@ def test_tavily_request_contract_and_failure_categories():
                              (432, "quota_exhausted"), (433, "quota_exhausted"),
                              (500, "unavailable")):  # fmt: skip
         with pytest.raises(ProviderError, match=category):
-            TavilySearch(lambda: "k", lambda *a, s=status: (s, b"{}")).search("q", 1, 1)
+            TavilySearch(lambda: "k", lambda *a, s=status: (s, b"{}", {})).search("q", 1, 1)
     with pytest.raises(ProviderError, match="malformed_response"):
-        TavilySearch(lambda: "k", lambda *a: (200, b"not json")).search("q", 1, 1)
+        TavilySearch(lambda: "k", lambda *a: (200, b"not json", {})).search("q", 1, 1)
     with pytest.raises(ProviderError, match="not_configured"):
         TavilySearch(lambda: None, poster).search("q", 1, 1)
 
@@ -350,7 +350,7 @@ def test_gemini_keeps_the_key_out_of_the_url_and_reports_usage():
         return 200, json.dumps({
             "candidates": [{"content": {"parts": [{"text": "{}"}]}}],
             "usageMetadata": {"promptTokenCount": 7, "candidatesTokenCount": 3},
-        }).encode()  # fmt: skip
+        }).encode(), {}  # fmt: skip
 
     result = GeminiLLM("a-model", lambda: "synthetic-key", poster).generate("p", 10, 1)
     assert result.text == "{}" and (result.input_tokens, result.output_tokens) == (7, 3)
@@ -359,13 +359,13 @@ def test_gemini_keeps_the_key_out_of_the_url_and_reports_usage():
     assert sent["headers"] == {"x-goog-api-key": "synthetic-key"}
     for payload in (b"{}", b'{"candidates":[]}', b"bad"):
         with pytest.raises(ProviderError, match="malformed_response"):
-            GeminiLLM("m", lambda: "k", lambda *a, d=payload: (200, d)).generate("p", 1, 1)
+            GeminiLLM("m", lambda: "k", lambda *a, d=payload: (200, d, {})).generate("p", 1, 1)
 
 
 def test_provider_errors_never_carry_provider_text():
     secret_body = b'{"error":"key synthetic-key rejected"}'
     with pytest.raises(ProviderError) as caught:
-        TavilySearch(lambda: "synthetic-key", lambda *a: (401, secret_body)).search("q", 1, 1)
+        TavilySearch(lambda: "synthetic-key", lambda *a: (401, secret_body, {})).search("q", 1, 1)
     assert "synthetic-key" not in str(caught.value) and str(caught.value) == "auth_rejected"
 
 

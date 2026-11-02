@@ -115,9 +115,10 @@ failure; leaving or refreshing asks for confirmation. Do not discard them during
 conflict recovery until you have copied anything needed. Reload the saved version
 and reapply edits deliberately; automatic conflict merging is not provided.
 
-Mock means providers are disabled; manual plans are not AI results. No credentials,
-hosted calls, web fetch, analytics, remote fonts, PDF pipeline or reports are included.
-Investigation deletion and archive are unavailable.
+Mock mode uses simulated providers and synthetic pages only; nothing it produces is real
+research. Analytics, remote fonts and a PDF pipeline are not included. Live providers are
+opt-in (see M1 research below). Deletion is permanent and needs the exact title; upgrade
+backups in the data folder and files you downloaded are not affected.
 
 Workspace writes require an allowed Origin, Host, JSON content type and a valid
 X-DeepTrace-Token header. The frontend obtains a process-local token from
@@ -126,7 +127,9 @@ storage, URLs or application logs; responses use no-store. Restarting the backen
 invalidates old tokens; retry fetches a new token. Reads without Origin still
 support CLI health checks; explicit origins must match the existing local allowlist.
 Loopback/token protection is not authentication against malicious software already
-running under the same operating-system account. No credential endpoints exist.
+running under the same operating-system account. Credential endpoints are write-only and
+keep keys in Windows Credential Manager, never in the database. Other software running under
+your account can read that store.
 
 The production frontend build is validated, but a packaged single-origin release
 server/installer remains deferred. Use the documented two-server development workflow.
@@ -190,5 +193,7 @@ citation exists; it does not mean the source supports the claim.
 Open an investigation, generate or write a plan, review the limits and select **Start research**.
 In mock mode, first enable synthetic collection in the Evidence workspace; no account is needed
 and nothing leaves this computer. Migration 006 applies automatically, with the same backup and
-rollback behaviour. Live research is opt-in: follow the procedure in
+rollback behaviour. Application logs rotate at about 1 MB under `logs` in the data folder (four
+files at most) and hold fixed events only. Set `DEEPTRACE_STORAGE_WARNING_MB` to change the
+500 MB per-investigation warning. Live research is opt-in: follow the procedure in
 [M1_HANDOFF.md](M1_HANDOFF.md), and never put API keys in `backend/.env`.

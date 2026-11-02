@@ -105,10 +105,33 @@ frozen production-only environment (19 packages, none of those three) ran the fu
    uses a new table because migration 001 forces `archived_at` to NULL.
 5. **One query per plan step.** FR-02.1 allows up to three; this uses one.
 6. **Setup.** No automatic first-run redirect, because mock mode needs no setup. `/setup` is linked.
-7. **Evidence and sources UI.** Evidence opens in a dialog, not a docked drawer addressed by
-   `?evidence=`. Sources are cards with a filter, not a sortable table.
+7. **Evidence and sources UI.** Evidence always opens as a modal dialog, without the docked
+   wide-screen panel. Sources are cards with a filter, not a sortable table, and have no
+   passage or cited-by counts.
 8. **Deletion** is database-only, as M1 stores no app-managed files. Upgrade backups can still
    hold deleted data, and the dialog says so.
+
+## Follow-up fixes (2026-11-02)
+
+A scan of the specifications after the first M1 commit found requirements that M1 had missed.
+All are now built and tested:
+
+- **Partial reports.** A run stopped by a limit or exhausted quota now saves a clearly labelled
+  partial report with no model call (DESIGN §9.6). Failed and cancelled runs still get none.
+- **`Retry-After`** is honoured, as seconds or an HTTP date (NFR-R2). A wait over 60 seconds
+  stops the run with `rate_limited` instead of holding the worker.
+- **Progress.** Five-phase tracker, a stage line with real counts, status messages and an
+  activity log (DESIGN §9.2, §9.3, §9.6).
+- **Cancel confirmation** with "Keep running" focused first (DESIGN §9.7).
+- **Evidence view.** Exact quote highlight (never guessed), "Open original", previous/next,
+  three automatic checks, "Cited by", `?evidence=` links that survive refresh and Back, and an
+  explicit message when a reference is invalid or a passage is unavailable (DESIGN §8.6, §10).
+- **Required wording** from DESIGN §14.3 is used exactly.
+- **Rotating log** of about 1 MB with three backups (NFR-O1), and a **storage warning** at a
+  configurable 500 MB per investigation (NFR-X1).
+
+The evidence view is still a modal dialog rather than the docked panel at wide screens, and its
+"Cited by" list and source details are shown without a Sounding Line decoration.
 
 ## Known limitations affecting live use
 

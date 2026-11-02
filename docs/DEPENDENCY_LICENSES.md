@@ -1,3 +1,12 @@
+# Dependency licenses
+
+**Current state (2026-11-02):** no new dependencies since Phase 3. Beautiful Soup 4.15.0 and
+soupsieve 3.0.4 (both MIT) are runtime dependencies. `httpx`, `httpcore` and `certifi` are
+development-only, so certifi's MPL-2.0 obligations do not apply to backend runtime
+distributions. Live HTTP uses Python's standard library. `dependency-inventory.json` is
+authoritative for exact versions. The sections below are dated decisions, oldest first; a
+later section supersedes an earlier one.
+
 # Phase 1 dependency license decision
 
 Owner approval: conditional MPL-2.0 exception, granted in this implementation

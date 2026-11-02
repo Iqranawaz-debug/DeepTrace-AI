@@ -38,19 +38,31 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
   // Limits are visible and bounded before anything runs.
   await expect(page.getByLabel(/^Pages fetched/)).toHaveAttribute('max', '15')
   await page.getByRole('button', { name: 'Start research' }).click()
-  await expect(page.getByText('Report saved', { exact: true })).toBeVisible({ timeout: 60000 })
+  await expect(page.getByText('Research completed. Review the report and the limitations.')).toBeVisible({ timeout: 60000 })
   await expect(page.getByText(/SIMULATED · Completed/)).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Research progress' }).getByRole('listitem')).toHaveText([/Plan.*Completed/, /Discover.*Completed/, /Read.*Completed/, /Check.*Completed/, /Report.*Completed/])
+  await page.getByText('Activity', { exact: true }).click()
+  await expect(page.getByText(/Searched: .*results\)/).first()).toBeVisible()
+  await expect(page.getByText('Limits are ceilings, not targets.', { exact: false })).toBeVisible()
 
   const findings = page.getByRole('region', { name: 'Findings' })
   await expect(findings.locator('.badge-cited').first()).toHaveText('Cited')
   await expect(findings.locator('.badge-missing').first()).toHaveText('Not established')
   await findings.getByRole('button', { name: /^Open evidence P-/ }).first().click()
   const evidence = page.getByRole('dialog')
-  await expect(evidence.getByText(/They don’t confirm the claim is true/)).toBeVisible()
-  await expect(evidence.getByText(/found in this investigation/)).toBeVisible()
+  await expect(evidence.getByText("These checks confirm the reference and wording. They don't confirm the claim is true.")).toBeVisible()
+  await expect(evidence.getByText('Belongs to this investigation')).toBeVisible()
+  await expect(evidence.locator('mark')).toHaveText(/SIMULATED|Fixture|Simulated/)
+  expect(page.url()).toContain('evidence=')
+  await expect(evidence.getByRole('link', { name: /Open original/ })).toHaveAttribute('rel', 'noopener noreferrer')
+  // A refresh restores the open evidence, and Back closes it before leaving the page.
+  await page.reload()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('dialog').getByRole('heading', { name: /^Evidence P-/ })).toBeFocused()
   expect(await serious()).toEqual([])
   await page.keyboard.press('Escape')
   await expect(evidence).not.toBeVisible()
+  expect(page.url()).not.toContain('evidence=')
 
   const article = page.getByRole('article', { name: 'Research report version 1' })
   const markdown = await article.locator('pre').innerText()
@@ -94,6 +106,7 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
   await card.getByRole('link', { name: 'M1 browser study', exact: true }).click()
 
   // Archive blocks new work; unarchive restores it.
+  await expect(page.getByText(/Saved text: .* MB/)).toBeVisible()
   await page.getByRole('button', { name: 'Archive' }).click()
   await expect(page.getByText('This investigation is archived.')).toBeVisible({ timeout: 10000 })
   await expect(page.getByRole('button', { name: 'Start research' })).toBeDisabled()

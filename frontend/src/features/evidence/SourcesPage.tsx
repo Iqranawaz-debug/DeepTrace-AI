@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPassages, getSource, listSources, type Passage, type Source } from '../../api/client'
 import { InvestigationNav } from '../investigations/InvestigationNav'
+import { ExternalSource } from './ExternalSource'
 
 const FILTERS: [string, string, (status: string) => boolean][] = [
   ['all', 'All', () => true],
@@ -30,6 +31,7 @@ function SourceRow({ source, investigationId }: { source: Source; investigationI
     <p className="record-dates">Retrieved {source.fetched_at ? new Date(source.fetched_at).toLocaleString() : 'not retrieved'}</p>
     <button className="button secondary" aria-expanded={open} aria-controls={panel} onClick={toggle}>{open ? 'Hide details' : 'Show details'}<span className="sr-only"> for {source.title || 'untitled source'}</span></button>
     {open && <div id={panel}>{error ? <p role="alert" className="error-state">Could not open this source. Saved data is unchanged.</p> : !detail ? <p role="status">Loading source…</p> : <>
+      <ExternalSource url={detail.source.original_url} />
       <dl><dt>Original URL</dt><dd className="mono hash">{detail.source.original_url}</dd><dt>Canonical URL</dt><dd className="mono hash">{detail.source.canonical_url}</dd><dt>Author</dt><dd>{detail.source.author || 'Unknown'}</dd><dt>Published</dt><dd>{detail.source.published_at || 'Unknown'}</dd><dt>Extraction version</dt><dd>{detail.source.extraction_version || 'None'}</dd><dt>SHA-256 of saved text</dt><dd className="mono hash">{detail.source.text_sha256 || 'No text saved'}</dd>{detail.source.limitation && <><dt>Limitation</dt><dd>{detail.source.limitation}</dd></>}</dl>
       {detail.passages.map(passage => <article key={passage.id}><h4>{passage.display_id}</h4><blockquote>{passage.text}</blockquote></article>)}</>}</div>}
   </li>

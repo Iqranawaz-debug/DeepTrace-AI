@@ -45,7 +45,7 @@ export function ProviderSetup() {
       <p><strong>{providers.mode === 'live_free' ? 'Live (free tier)' : providers.mode === 'offline' ? 'Offline' : 'Mock / offline workspace'}</strong>. {providers.mode === 'mock' ? 'Simulated providers and synthetic fixtures. No key or account is needed and nothing leaves this computer.' : providers.mode === 'offline' ? 'Saved research can be read. New research is disabled.' : 'Approved requests go to the providers below.'}</p>
       {providers.mode !== 'live_free' && <><h3>To use live research</h3><ol className="setup-steps"><li>Add your keys and accept each disclosure below.</li><li>In <code>backend/.env</code>, set <code>DEEPTRACE_MODE=live_free</code> and <code>DEEPTRACE_LLM_MODEL</code> to a Gemini model you have confirmed is free for your account and region.</li><li>Restart the backend. A web page can never switch this on by itself.</li></ol></>}
       {(providers.blockers ?? []).length > 0 && providers.mode === 'live_free' && <><h3>Still needed</h3><ul>{providers.blockers?.map(item => <li key={item}>{item}</li>)}</ul></>}
-      <dl><div><dt>Paid API usage</dt><dd>Disabled; no paid fallback exists</dd></div><div><dt>Telemetry</dt><dd>Not collected</dd></div>{providers.llm_model && <div><dt>Model</dt><dd className="mono">{providers.llm_model}</dd></div>}</dl>
+      <dl><div><dt>Paid API usage</dt><dd>Disabled; no paid fallback exists</dd></div><div><dt>Telemetry</dt><dd>DeepTrace doesn't collect telemetry.</dd></div>{providers.llm_model && <div><dt>Model</dt><dd className="mono">{providers.llm_model}</dd></div>}</dl>
     </section>
     <ul className="provider-list">{(providers.providers ?? []).map(provider => <ProviderCard key={provider.id} provider={provider} onChange={load} />)}</ul>
   </>

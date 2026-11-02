@@ -11,6 +11,7 @@ from deeptrace.storage.research_repository import ResearchRepository
 
 T = TypeVar("T")
 MAX_ATTEMPTS = 3
+MAX_RETRY_WAIT = 60.0  # A longer Retry-After stops the run rather than holding the worker.
 # Bumping a version invalidates earlier consent: a stored key or old consent is not enough.
 DISCLOSURES = {"tavily": "tavily-live-v1", "gemini": "gemini-live-v1", "public_web": "web-live-v1"}
 
@@ -112,7 +113,8 @@ class Gateway:
                 self.last_failure[provider] = exc.category
                 if exc.category not in RETRYABLE or attempt == MAX_ATTEMPTS:
                     raise
-                if self.stop.wait(self.backoff(attempt)):
+                wait = max(self.backoff(attempt), exc.retry_after or 0.0)
+                if wait > MAX_RETRY_WAIT or self.stop.wait(wait):
                     raise
                 continue
             self.repo.usage_end(usage, "ok")

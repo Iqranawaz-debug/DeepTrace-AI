@@ -238,6 +238,13 @@ def download_generated(identifier: UUID, version: Version, repo: Repo) -> Respon
     )
 
 
+@router.get("/investigations/{identifier}/storage")
+def storage(identifier: UUID, request: Request, repo: Repo) -> dict[str, int | bool]:
+    used = repo.storage_bytes(str(identifier))
+    limit = request.app.state.storage_warning_bytes
+    return {"bytes": used, "warning_bytes": limit, "over_warning": used >= limit}
+
+
 @router.post("/investigations/{identifier}/sensitive")
 def set_sensitive(identifier: UUID, data: Flag, repo: Repo) -> dict[str, bool]:
     repo.set_sensitive(str(identifier), data.value)

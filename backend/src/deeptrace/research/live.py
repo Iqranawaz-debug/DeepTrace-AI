@@ -9,6 +9,8 @@ import http.client
 import json
 import ssl
 from collections.abc import Callable
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.parse import quote
 
@@ -17,12 +19,13 @@ from deeptrace.collection.policy import CollectionError, destinations
 from deeptrace.research.contracts import LLMText, ProviderError, SearchLead
 
 MAX_RESPONSE = 4_000_000
-Poster = Callable[[str, str, dict[str, str], bytes, float], tuple[int, bytes]]
+Reply = tuple[int, bytes, dict[str, str]]
+Poster = Callable[[str, str, dict[str, str], bytes, float], Reply]
 
 
 def post_json(
     host: str, target: str, headers: dict[str, str], body: bytes, timeout: float
-) -> tuple[int, bytes]:
+) -> Reply:
     """POST to a fixed provider host over the same policy-checked pinned connection."""
     try:
         _, addresses = destinations(f"https://{host}/", bounded_resolve)
@@ -47,10 +50,27 @@ def post_json(
         raise ProviderError("unavailable") from None
     if len(data) > MAX_RESPONSE:
         raise ProviderError("malformed_response")
-    return response.status, data
+    return response.status, data, {k.lower(): v for k, v in response.getheaders()}
 
 
-def classify(status: int, quota_statuses: frozenset[int] = frozenset()) -> None:
+def retry_after(headers: dict[str, str]) -> float | None:
+    """NFR-R2: seconds or an HTTP date. Anything unparseable is simply ignored."""
+    value = headers.get("retry-after", "").strip()
+    if not value:
+        return None
+    try:
+        return max(0.0, float(int(value)))
+    except ValueError:
+        pass
+    try:
+        return max(0.0, (parsedate_to_datetime(value) - datetime.now(UTC)).total_seconds())
+    except ValueError, TypeError:
+        return None
+
+
+def classify(
+    status: int, headers: dict[str, str], quota_statuses: frozenset[int] = frozenset()
+) -> None:
     if status == 200:
         return
     if status in quota_statuses:
@@ -58,8 +78,8 @@ def classify(status: int, quota_statuses: frozenset[int] = frozenset()) -> None:
     if status in {401, 403}:
         raise ProviderError("auth_rejected")
     if status == 429:
-        raise ProviderError("rate_limited")
-    raise ProviderError("unavailable")
+        raise ProviderError("rate_limited", retry_after(headers))
+    raise ProviderError("unavailable", retry_after(headers))
 
 
 def decode(data: bytes) -> Any:
@@ -82,10 +102,10 @@ class TavilySearch:
             raise ProviderError("not_configured")
         # Least-cost option only; premium search depths are never enabled implicitly.
         body = json.dumps({"query": query, "max_results": limit, "search_depth": "basic"})
-        status, data = self.poster(
+        status, data, headers = self.poster(
             self.host, "/search", {"Authorization": f"Bearer {key}"}, body.encode(), timeout
         )
-        classify(status, frozenset({432, 433}))
+        classify(status, headers, frozenset({432, 433}))
         results = decode(data)
         if not isinstance(results, dict) or not isinstance(results.get("results"), list):
             raise ProviderError("malformed_response")
@@ -121,10 +141,10 @@ class GeminiLLM:
         )
         target = f"/v1beta/models/{quote(self.model, safe='')}:generateContent"
         # The key travels in a header so it can never appear in a URL or a log of one.
-        status, data = self.poster(
+        status, data, reply_headers = self.poster(
             self.host, target, {"x-goog-api-key": key}, body.encode(), timeout
         )
-        classify(status)
+        classify(status, reply_headers)
         payload = decode(data)
         try:
             parts = payload["candidates"][0]["content"]["parts"]

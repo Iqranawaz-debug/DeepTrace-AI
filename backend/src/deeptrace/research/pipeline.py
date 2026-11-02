@@ -4,6 +4,7 @@ The language model never chooses a URL: only search-provider leads that pass the
 policy are fetched, and model output is validated before anything is shown or stored.
 """
 
+import contextlib
 import json
 import re
 import threading
@@ -40,6 +41,14 @@ MAX_OUTPUT_TOKENS = 4096
 MAX_ALLOWED_PASSAGES = 12
 MODEL_ATTEMPTS = 2  # FR-P3: bounded retry for malformed model output.
 PROVIDER_TIMEOUT = 45.0
+NO_MODEL = "none"
+LIMIT_NAMES = {
+    "search_budget": "the search limit",
+    "page_budget": "the page limit",
+    "step_budget": "the step limit",
+    "token_budget": "the token limit",
+    "quota_exhausted": "the provider quota",
+}
 _WORD = re.compile(r"\w+", re.UNICODE)
 STOPWORDS = frozenset(
     "a an and are as at be by can do does for from how in is it of on or that the this to "
@@ -50,8 +59,9 @@ STOPWORDS = frozenset(
 class Halt(Exception):
     """Stop the run with an honest terminal state; saved evidence is always retained."""
 
-    def __init__(self, status: str, code: str | None = None):
+    def __init__(self, status: str, code: str | None = None, omissions: list[str] | None = None):
         self.status, self.code = status, code
+        self.omissions = omissions or []
         super().__init__(status)
 
 
@@ -119,11 +129,34 @@ class Pipeline:
             else:
                 self._research(run, snapshot, stop)
         except Halt as halt:
-            self.collection.finish(run["id"], halt.status, halt.code)
+            self._stop(run, snapshot, halt.status, halt.code, halt.omissions)
         except ProviderError as exc:
             # Quota exhaustion is a budget stop; everything else is a recoverable failure.
             quota = exc.category == "quota_exhausted"
-            self.collection.finish(run["id"], "budget_reached" if quota else "failed", exc.category)
+            self._stop(run, snapshot, "budget_reached" if quota else "failed", exc.category, [])
+
+    def _stop(
+        self,
+        run: dict[str, Any],
+        snapshot: dict[str, Any],
+        status: str,
+        code: str | None,
+        omissions: list[str],
+    ) -> None:
+        if status == "budget_reached" and snapshot["scope"] == "research_pipeline":
+            # DESIGN §9.6: a budget stop still offers a partial report of what was found.
+            with contextlib.suppress(Exception):
+                self._partial_report(run, code, omissions)
+        self.collection.finish(run["id"], status, code)
+
+    def _partial_report(self, run: dict[str, Any], code: str | None, omissions: list[str]) -> None:
+        limit = LIMIT_NAMES.get(code or "", "a run limit")
+        output = SynthOutput(
+            summary=f"Stopped: {limit} reached before an answer was drafted. "
+            "Partial results are shown and may be incomplete.",
+            limitations="No answer was generated, so nothing here is a finding.",
+        )
+        self._save(run, output, [], omissions, NO_MODEL, NO_MODEL, NO_MODEL, limit)
 
     def _check(self, run: str, stop: threading.Event) -> None:
         if stop.is_set():
@@ -267,7 +300,7 @@ class Pipeline:
             steps += 1
         self.research.stage(identifier, "fetch", "completed", {"attempted": pages})
         if budget_stop:
-            raise Halt("budget_reached", budget_stop)
+            raise Halt("budget_reached", budget_stop, omissions)
 
         # Rank a bounded allowlist; only these passages may be sent or cited.
         allowed = rank_passages(
@@ -281,7 +314,7 @@ class Pipeline:
         spent = [0]
         if allowed:
             if steps >= budgets.max_steps or over_time():
-                raise Halt("budget_reached", "step_budget")
+                raise Halt("budget_reached", "step_budget", omissions)
             output = self._model(
                 identifier,
                 "synthesize",
@@ -309,8 +342,24 @@ class Pipeline:
             omissions.append("No model call was made because no passages were available.")
         self._check(identifier, stop)
         claims = validate_claims(output, allowed, investigation)
+        self._save(run, output, claims, omissions, llm.id, llm.model, prompts.SYNTHESIZE_VERSION)
+        self.collection.finish(identifier, "completed")
+
+    def _save(
+        self,
+        run: dict[str, Any],
+        output: SynthOutput,
+        claims: list[ValidatedClaim],
+        omissions: list[str],
+        provider: str,
+        model: str,
+        prompt_version: str,
+        stopped: str | None = None,
+    ) -> None:
+        identifier, investigation = run["id"], run["investigation_id"]
         sources = self.research.run_sources(identifier, investigation)
         queries = self.research.queries(identifier)
+        search_id = self.gateway.search_provider.id
 
         def build(version: int, created: str) -> tuple[str, str, dict[str, int]]:
             data = GeneratedInput(
@@ -323,13 +372,14 @@ class Pipeline:
                 sources=sources,
                 queries=queries,
                 omissions=omissions,
-                provider=llm.id,
-                model=llm.model,
-                prompt_version=prompts.SYNTHESIZE_VERSION,
-                search_provider=search.id,
+                provider=provider,
+                model=model,
+                prompt_version=prompt_version,
+                search_provider=search_id,
                 mode=run["mode"],
                 version_no=version,
                 created_at=created,
+                stopped=stopped,
             )
             return render(data), GENERATED_SCHEMA_VERSION, counts(data)
 
@@ -339,12 +389,12 @@ class Pipeline:
             output.limitations,
             output.needed_evidence,
             claims,
-            llm.id,
-            llm.model,
-            prompts.SYNTHESIZE_VERSION,
+            provider,
+            model,
+            prompt_version,
             build,
+            partial=stopped is not None,
         )
-        self.collection.finish(identifier, "completed")
 
     def _title(self, investigation: str) -> str:
         with self.research.db.connection() as con:
