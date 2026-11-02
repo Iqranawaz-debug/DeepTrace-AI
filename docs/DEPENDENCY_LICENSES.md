@@ -107,3 +107,79 @@ Apache-2.0, PSF-2.0, BlueOak-1.0.0, CC0-1.0, CC-BY-4.0 and OFL-1.1.
 is preserved in the aggregate notices. Any future redistribution must retain
 applicable attribution and license references. Future dependency changes must
 rerun this audit; GPL/AGPL/LGPL or new copyleft additions need separate approval.
+
+## Phase 3 dependency decision (2026-10-26)
+
+The approved extractor is application-owned Apache-2.0 code using Beautiful Soup
+4.15.0 and Python 3.14's built-in `html.parser`. No Trafilatura, tld, chardet,
+readability-lxml, native parser, browser engine, search SDK or AI SDK was added.
+
+Exact extractor runtime closure:
+
+| Package | Version | License | Change |
+|---|---|---|---|
+| beautifulsoup4 | 4.15.0 | MIT | New runtime package |
+| soupsieve | 3.0.4 | MIT | New runtime dependency, explicitly pinned |
+| typing-extensions | 4.16.0 | PSF-2.0 | Existing runtime dependency retained |
+
+HTTPX 0.28.1 and HTTPcore 1.0.9 (BSD-3-Clause) are explicitly pinned runtime
+requirements for the approved transport foundation. There is still no production
+socket connector. Their complete locked closure is HTTPX, HTTPcore, AnyIO 4.15.1
+(MIT), idna 3.20 (BSD-3-Clause), h11 0.16.0 (MIT), certifi 2026.10.23 (MPL-2.0),
+and typing-extensions 4.16.0 (PSF-2.0). None of those existing versions changed.
+The machine-readable inventory is authoritative for exact installed metadata.
+
+**Distribution correction to the Phase 1 description above:** certifi is now in
+the production Python dependency graph, rather than development-only. The existing
+owner-approved MPL-2.0 exception covers certifi. Its unmodified license text is in
+THIRD_PARTY_NOTICES.txt; its exact corresponding source archive URL is recorded
+in dependency-inventory.json and uv.lock (including artifact hashes). Any backend
+binary/environment distribution must retain this notice and license, tell
+recipients where that exact MPL-covered source is available, and ensure it remains
+available to those recipients. A distributor should bundle the corresponding
+source if it cannot ensure the recorded archive remains available. No backend
+installer or binary distribution is produced by this phase. This does not relicense
+certifi under Apache-2.0 or extend approval to another copyleft package.
+
+The offline license audit checks 374 locked artifacts, 328 installed. All previous
+license/notice text is retained, including upstream whitespace; AUTHORS files are
+included where shipped. No MPL-covered source or font asset was modified.
+Build/test-only MPL tools remain development-only; no new frontend dependency was
+introduced. The five specifications and the overall DESIGN review status remain
+unchanged.
+
+Python 3.14.3 resolution and execution were verified. On 2026-10-26, npm audit
+reported zero findings and OSV querybatch reported zero findings for 33 locked
+third-party Python packages. Audits send package names/versions only. These are
+point-in-time known-advisory checks, not guarantees against undisclosed issues.
+
+## HTTPX/HTTPcore returned to development-only (2026-10-29, owner-approved)
+
+This supersedes the runtime placement described in the 2026-10-26 section above,
+which is kept as history.
+
+- **Evidence:** no application module imports `httpx`, `httpcore` or `certifi`;
+  only the tests use `httpx`, through `fastapi.testclient`. In `uv.lock`, `httpx`
+  is required only by `deeptrace`, `httpcore` only by `deeptrace` and `httpx`, and
+  `certifi` only by `httpx` and `httpcore`. No production dependency (FastAPI,
+  Starlette, Uvicorn, Pydantic, Beautiful Soup) requires any of them.
+- **Change:** the `httpcore==1.0.9` and `httpx==0.28.1` runtime pins were removed
+  from `backend/pyproject.toml`. The existing `dev` group entry `httpx>=0.28`
+  (the committed Phase 2 arrangement) is unchanged. `uv.lock` was regenerated
+  with `uv lock --offline`. The only lock change is removing those two runtime
+  requirements from `deeptrace`. The lock still resolves 34 packages and no
+  version changed (httpx 0.28.1, httpcore 1.0.9, certifi 2026.10.23 remain
+  locked for development).
+- **Production graph:** a frozen production-only install (`uv sync --frozen
+  --no-dev`) has 19 packages and **does not include `certifi`, `httpx` or
+  `httpcore`**. `h11` (Uvicorn), `anyio` and `idna` (Starlette) remain runtime.
+  The production application passed an end-to-end ASGI smoke test there
+  (migrations, worker, extraction subprocess, cited draft, report download).
+- **Licensing effect:** certifi (MPL-2.0) is again development/test-only, so
+  backend runtime distributions no longer carry certifi's MPL obligations. The
+  MPL-2.0 exception, the notice text and all license files are unchanged. The
+  offline audit still checks 374 locked / 328 installed. In the regenerated
+  inventory, only the `development` flag of certifi, httpcore and httpx changed
+  (to `true`); both notices files are byte-identical.
+- **Future:** a live HTTP connector would need these packages back at runtime,
+  together with its separate security approval.

@@ -27,7 +27,7 @@ export function PlanEditor({ investigationId, initial, onSaved }: { investigatio
     finally { setBusy(false) }
   }
   return <form className="settings-card workspace-form" onSubmit={submit}>
-    <h2>Manual research plan</h2><p>Up to eight steps. These are your planning notes, not AI output or research findings. Search-query notes are never executed.</p>
+    <h2>Manual research plan</h2><p>Up to eight steps. Steps are planning notes, not research findings. Search-query notes run as web searches only when you start research.</p>
     <fieldset disabled={busy}><legend className="sr-only">Research steps</legend>
       {items.length === 0 && <p>No steps yet. You can save an empty draft plan.</p>}
       <ol className="plan-list">{items.map((item, index) => <li key={item.id} className="plan-step"><h3>Step {index + 1}</h3>

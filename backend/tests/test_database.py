@@ -6,6 +6,8 @@ import pytest
 
 from deeptrace.storage.database import MIGRATIONS, Database, MigrationError
 
+LATEST = len(list(MIGRATIONS.glob("[0-9][0-9][0-9]_*.sql")))
+
 
 def test_fresh_replay_and_empty(tmp_path):
     db = Database(tmp_path)
@@ -46,7 +48,7 @@ def test_tampering_and_newer_schema(tmp_path):
     with pytest.raises(MigrationError, match="checksum"):
         db.migrate()
     with db.transaction() as connection:
-        connection.execute("INSERT INTO schema_meta VALUES (3, 'now', 'future')")
+        connection.execute("INSERT INTO schema_meta VALUES (?, 'now', 'future')", (LATEST + 1,))
     with pytest.raises(MigrationError, match="newer"):
         db.migrate()
 
@@ -56,7 +58,7 @@ def test_failed_upgrade_rolls_back_and_backups(tmp_path):
     shutil.copytree(MIGRATIONS, migrations)
     db = Database(tmp_path / "data")
     db.migrate(migrations)
-    (migrations / "003_failure.sql").write_text(
+    (migrations / f"{LATEST + 1:03d}_failure.sql").write_text(
         "CREATE TABLE should_rollback(id INTEGER);\nINVALID SQL;\n", encoding="utf-8"
     )
     with pytest.raises(sqlite3.Error):
@@ -65,7 +67,7 @@ def test_failed_upgrade_rolls_back_and_backups(tmp_path):
         assert not connection.execute(
             "SELECT name FROM sqlite_master WHERE name='should_rollback'"
         ).fetchall()
-        assert connection.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0] == 2
+        assert connection.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0] == LATEST
     backups = list((db.path.parent / "backups").glob("*.sqlite3"))
     assert len(backups) == 1
     with sqlite3.connect(backups[0]) as connection:

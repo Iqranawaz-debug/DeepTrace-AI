@@ -1,4 +1,4 @@
-"""Validated local-only configuration; no credential fields."""
+"""Validated local-only configuration; no credential fields, no provider base URLs."""
 
 import os
 from pathlib import Path
@@ -15,7 +15,8 @@ def default_data_dir() -> Path:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DEEPTRACE_", env_file=".env", extra="forbid")
-    mode: Literal["mock", "offline"] = "mock"
+    mode: Literal["mock", "offline", "live_free"] = "mock"
+    llm_model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,80}$")
     allow_paid_apis: Literal[False] = False
     host: Literal["127.0.0.1"] = "127.0.0.1"
     port: int = Field(default=8000, ge=1024, le=65535)

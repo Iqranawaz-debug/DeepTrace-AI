@@ -22,7 +22,7 @@ describe('foundation', () => {
     render(<RouterProvider router={createMemoryRouter([{ path: "*", element: <App /> }])} />)
     await userEvent.click(screen.getByRole('link', { name: 'Settings' }))
     expect(screen.getByRole('heading', { name: 'Settings', level: 1 })).toHaveFocus()
-    expect(screen.getByText('Credentials cannot be entered in this version. Future live features will require explicit consent before sending data.')).toBeInTheDocument()
+    expect(screen.getByText('Providers, consent and what stays on this computer.')).toBeInTheDocument()
   })
 
   it('reports errors and retries safely', async () => {

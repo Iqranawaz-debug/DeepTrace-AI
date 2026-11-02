@@ -134,3 +134,171 @@ preloads, included licenses, and absence of MPL tools in its bundled module list
   coverage remain release-hardening work. No backend CVE scan is claimed.
 - No cloud/provider functionality, research engine or full user-data deletion
   workflow exists to validate in Phase 1.
+
+## Phase 3 checks
+
+The same `scripts/check.ps1` command includes the new collection tests and real
+Edge evidence workflow. All content is synthetic; the browser blocks external
+requests, backend tests guard socket connections, and runtime mock retrieval has
+no network connector. Run tests against disposable data directories only.
+
+New suites: `test_collection_security.py` (URL/DNS, redirect/robots, compression,
+consent, extraction, parser timeout and Unicode offsets), `test_collection_api.py`
+(run admission/history, source hashes/immutability, ownership, cancellation,
+revocation, deduplication, atomic checkpoints, worker lock and Tavily contracts),
+`test_phase3_migrations.py` (populated 002 upgrade, failed 003 rollback and verified
+backup), `EvidenceWorkspace.test.tsx`, and `e2e/phase3-evidence.spec.ts`.
+
+Dependency checks: the offline `scripts/audit_dependencies.py` regenerates exact
+inventory/notices; `npm.cmd audit --json` checks npm advisories. The Phase 3 OSV
+batch audit checked all 33 non-application packages in uv.lock by exact version.
+Only dependency metadata was transmitted. Network-dependent audits are separate
+from ordinary application tests and require network access.
+
+Live-network activation remains gated: synthetic tests cannot verify actual
+socket address pinning, TLS SNI/certificate checks, operating-system DNS deadlines,
+proxy bypass prevention under a real connector, connection pooling behavior or
+real-world redirect/decompression behavior. A future connector needs separate
+controlled validation and owner approval before any live research traffic.
+
+
+## Phase 3 completion and Phase 4 validation (executed 2026-10-28)
+
+Windows 11, Python 3.14.3, SQLite 3.50.4, Node 24.21.0, Microsoft Edge
+156.0.4314.50. Final run: `.\scripts\check.ps1` from the repository root, exit 0.
+
+| Check | Command | Result |
+|---|---|---|
+| Backend lint | `ruff check src tests` | Passed |
+| Backend format | `ruff format --check src tests` | Passed, 43 files |
+| Backend types | `mypy src` | Passed, 30 source files |
+| Backend tests | `pytest -q --basetemp=.cache/test-<guid>` | **146 passed** |
+| Frontend lint / types | `npm.cmd run lint`, `npm.cmd run typecheck` | Passed |
+| Components | `npm.cmd run test` | **19 passed**, 5 files |
+| Production build | `npm.cmd run build` | Passed |
+| Real browser | `npm.cmd run test:browser` | **6 passed** (Edge 156.0.4314.50) |
+| License audit (root) | `backend/.venv/Scripts/python.exe scripts/audit_dependencies.py` | Passed: 374 locked / 328 installed; regenerated inventory and both notices byte-identical |
+| Python lock (backend) | `uv lock --check --offline --cache-dir .cache/uv` | Passed, 34 packages |
+
+Baseline before this session's changes (same machine): 120 backend, 15 component
+and 3 of 5 browser tests passed. The `investigations` two-tab conflict test passed
+when re-run alone (10.4 s) and in both later full runs, so it is treated as a
+load-timing flake; its 5 s assertion was not relaxed. The Phase 3 evidence spec
+had a real race (`isVisible()` before the panel loaded); the test now waits for
+the provider state. The committed `HEAD` backend (exported via `git archive`,
+outside the repo) passed 56 tests, matching the historical Phase 2 report.
+
+New and updated suites:
+- `test_phase3_fixes.py`: hex-letter hostnames accepted; numeric/0x final labels
+  rejected; no word merging across cells/h5/blockquote/dl; `<head>` title only;
+  worker failure → `failed/worker_failure` with the worker still serving; a
+  terminal run is never rewritten.
+- `test_synthesis_api.py`: saved URL is a lead (no source/run, idempotent,
+  duplicate 409, unsafe 422, isolation); evidence reviews (revisions, stale 409,
+  unknown target, foreign passage 404, removed step keeps label); fabricated,
+  cross-investigation and mismatched-quote citations rejected with nothing
+  persisted; NFC/whitespace, case-sensitive quotes; cited / not-established /
+  contradicting states; report creation, escaping (no unescaped `<` or `](`),
+  checksum, download bytes and headers, UPDATE trigger, version 2 leaving version 1
+  unchanged, older-version warnings, persistence across an app restart,
+  tamper detection (500), cross-investigation isolation, DB composite-FK
+  rejection, token/origin on all new mutations, kernel and escaping units.
+- `test_phase4_migrations.py`: populated 003 → 005 upgrade preserves sources and
+  passages; a failing 005 rolls back all pending migrations; backup verified.
+- `test_database.py` / `test_phase3_migrations.py`: version numbers derived from
+  the migration count instead of hard-coded.
+- `Report.test.tsx`: hostile source text rendered inertly (no img/script, no
+  execution); a rejected citation keeps edits and shows the server reason;
+  Cited/Not-established badges; passage dialog; exact preview and download href;
+  saved-URL retry identifier reuse.
+- `e2e/phase4-report.spec.ts`: save URL → collect → review → claim with quotation
+  → save → create version → download; the downloaded file's SHA-256 equals the
+  stored hash; 390/1440 px no horizontal overflow and no serious/critical axe
+  findings; reload persistence; injected `<script>` in the summary not executed;
+  zero non-local requests; no page errors. The test found a real 390 px overflow
+  (unbreakable SHA-256 line), which was fixed.
+
+Running `check.ps1` with `*>&1` redirection under Windows PowerShell 5.1 fails
+on Node's `NO_COLOR` stderr warning; run it unredirected. Not claimed: manual
+WCAG/NVDA audit, penetration test, CVE scan, real-network fetch validation or
+extraction accuracy on real web pages.
+
+## Re-audit validation (executed 2026-10-29)
+
+Same toolchain and Edge 156.0.4314.50. All results below come from this run.
+
+| Check | Command | Result |
+|---|---|---|
+| Baseline before re-audit edits | `.\scripts\check.ps1` | Exit 0: 146 backend, 19 component, 6 Edge passed |
+| Backend lint / format / types | `ruff check`, `ruff format --check`, `mypy src` | Passed (44 files formatted; 30 source files typed) |
+| Backend tests | `pytest -q` (via check.ps1) | **156 passed** (adds `test_phase4_integrity.py`, 10 tests) |
+| Components | `npm.cmd run test` | **20 passed** (adds keyboard claim reorder) |
+| Lint / types / build | `npm.cmd run lint`, `typecheck`, `build` | Passed |
+| Edge, final check.ps1 | `npm.cmd run test:browser` | 5 passed, **1 failed**: `foundation` timed out (30 s) inside its six-width axe scan |
+| Edge, two standalone re-runs | `npx.cmd playwright test` | **6 passed** both times (foundation 25.8 s and 20.0 s) |
+| License audit | `backend/.venv/Scripts/python.exe scripts/audit_dependencies.py` | Passed: 374 locked / 328 installed; outputs byte-identical |
+
+One run caught a real formatting failure in a new test file (`ruff format
+--check`); it was formatted and the full suite re-run, not skipped.
+
+**Timing risk (pre-existing Phase 1 test, not modified):** `foundation.spec.ts`
+uses Playwright's default 30 s test timeout and here takes 15–26 s, mostly in
+CPU-bound axe scans at six widths. Under load it can exceed 30 s. Its assertions
+are unaffected. Raising its timeout would be a test-configuration change for the
+owner to decide.
+
+Dependency facts were checked against `backend/pyproject.toml` and `uv.lock`,
+not the handoff: beautifulsoup4 4.15.0, soupsieve 3.0.4, httpx 0.28.1, httpcore
+1.0.9 and certifi 2026.10.23 (MPL-2.0, runtime through httpx/httpcore), matching
+DEPENDENCY_LICENSES.md. No application module imports httpx or httpcore (see the
+PHASE4_HANDOFF addendum). The npm audit and OSV checks recorded on 2026-10-26
+need network access and were **not** re-run; they remain historical.
+
+## Dependency move validation (executed 2026-10-29)
+
+After httpx/httpcore were returned to development-only (see DEPENDENCY_LICENSES.md):
+
+| Check | Command | Result |
+|---|---|---|
+| Relock (backend) | `uv lock --offline` (default uv cache) | 34 packages; only `deeptrace`'s two runtime requirements removed |
+| Lock gate (backend) | `uv lock --check --offline` | Passed, 34 packages |
+| Dev environment (backend) | `uv sync --frozen --offline`, then `--check` | Only the editable project reinstalled; "Would make no changes" |
+| Production-only install | `UV_PROJECT_ENVIRONMENT=<scratch> uv sync --frozen --no-dev --offline` (project cache, skipping bs4/soupsieve), then the same with the default cache, then `--check` | 19 packages; httpx, httpcore, certifi, pytest and mypy absent; "Would make no changes" |
+| Production smoke | scratch `python -I prod_smoke.py` (raw ASGI, no httpx) | Passed: ready, session, create, consent, collection (P-0001, extractor v2), cited draft, report, byte-exact download |
+| License audit | `scripts/audit_dependencies.py` | Passed: 374 / 328; inventory changed only certifi/httpcore/httpx `development` flags; notices byte-identical |
+| Full gates | `.\scripts\check.ps1` | Exit 0: see the summary below |
+
+The production install needs two offline passes because no single local uv cache
+holds every locked wheel: `.cache/uv` lacks beautifulsoup4, and the default
+cache lacks the pydantic-core wheel. A normal online `uv sync --frozen --no-dev`
+would fetch the same hash-locked artifacts. No network was used. The smoke script
+lives in the session scratchpad, not the repository; there is still no committed
+production-only install test.
+
+Full gates after the move: ruff/format (44 files)/mypy (30 files) passed; **156**
+backend, **20** component and **6/6** Edge tests passed; build passed.
+
+## M1 validation (executed 2026-11-02)
+
+Same toolchain, Edge 156.0.4314.50. `.\scripts\check.ps1`, run unredirected, exit 0.
+
+| Check | Command | Result |
+|---|---|---|
+| Backend lint / format / types | `ruff check`, `ruff format --check`, `mypy src` | Passed (58 files formatted; 42 source files typed) |
+| Backend tests | `pytest -q` | **277 passed** |
+| Frontend lint / types / build | `npm.cmd run lint`, `typecheck`, `build` | Passed |
+| Components | `npm.cmd run test` | **29 passed**, 6 files |
+| Real browser | `npm.cmd run test:browser` | **7 passed** |
+| License audit | `backend/.venv/Scripts/python.exe scripts/audit_dependencies.py` | Passed, 374 / 328; outputs byte-identical |
+| Python lock | `uv lock --check --offline` | Passed, 34 packages |
+| Production-only smoke | scratch `python -I prod_smoke.py` in a `--no-dev` environment | Passed: plan, research, report; httpx/httpcore/certifi absent |
+| Real TLS on loopback | scratch `tls_check.py` with a temporary self-signed certificate (deleted after) | Untrusted certificate fails closed; trusted connects to pinned IP with correct SNI; wrong name fails closed |
+
+New suites: `test_m1_research.py`, `test_m1_live_boundary.py`, `Research.test.tsx`,
+`e2e/m1-research.spec.ts`. Backend tests allow real sockets only in one loopback fixture, which
+proves where a pinned connection goes. `test_windows_credential_manager_round_trip` writes a
+synthetic value to Windows Credential Manager under a random test name, then deletes it.
+
+**Not run:** any real Tavily, Gemini or public-website request (no keys; see M1_HANDOFF.md).
+The production and TLS checks are scratch scripts and are not part of `check.ps1`. A manual
+keyboard or NVDA audit, penetration test and CVE scan are not claimed.

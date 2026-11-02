@@ -7,7 +7,10 @@ import { ChevronLeft, ChevronRight, Compass, FlaskConical,
 import { Dashboard } from '../features/investigations/Dashboard'
 import { InvestigationForm, UnsavedChanges } from '../features/investigations/InvestigationForm'
 import { InvestigationPage } from '../features/investigations/InvestigationPage'
-import { getHealth } from '../api/client'
+import { ReportPage } from '../features/report/ReportPage'
+import { SourcesPage } from '../features/evidence/SourcesPage'
+import { ProviderSetup } from '../features/settings/ProviderSetup'
+import { getHealth, getMode } from '../api/client'
 import { ErrorState, LoadingState } from '../components/States'
 
 function Navigation({ close }: { close?: () => void }) {
@@ -38,14 +41,28 @@ function BackendStatus() {
 
 function SettingsPage() {
   return <><div className="page-intro"><p className="eyebrow">Local application</p><h1 tabIndex={-1}>Settings</h1>
-    <p>A clear view of what this foundation can do.</p></div>
-    <section className="settings-card"><h2>Provider boundaries</h2><p>Mock / offline workspace. Research execution is not available.</p>
-      <dl><div><dt>Gemini · language model</dt><dd>Disabled</dd></div><div><dt>Tavily · web search</dt><dd>Disabled</dd></div>
-        <div><dt>Paid API usage</dt><dd>Disabled</dd></div><div><dt>Telemetry</dt><dd>Not collected</dd></div></dl>
-      <p>Credentials cannot be entered in this version. Future live features will require explicit consent before sending data.</p></section>
+    <p>Providers, consent and what stays on this computer.</p></div>
+    <ProviderSetup />
     <section className="settings-card"><h2>Local storage</h2><p>SQLite stores application data in your local user application-data directory, outside this repository.</p>
-      <p>Investigations and manual plans are saved on this computer. Backups made during schema upgrades remain here. Research execution is disabled.</p></section>
+      <p>Investigations, plans, sources and reports are saved on this computer. Backups made during schema upgrades remain in the data folder. API keys are kept in Windows Credential Manager, never in the database.</p></section>
     <BackendStatus /></>
+}
+
+function SetupPage() {
+  return <><div className="page-intro"><p className="eyebrow">Setup</p><h1 tabIndex={-1}>Set up research</h1>
+    <p>Mock mode works right away with no account. Live research needs your own free-tier keys and your explicit consent for each provider.</p></div>
+    <ProviderSetup /><Link to="/">Return to Dashboard</Link></>
+}
+
+function ModeBanner() {
+  const [mode, setMode] = useState<string | null>(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    getMode(controller.signal).then(setMode).catch(() => {})
+    return () => controller.abort()
+  }, [])
+  if (mode === 'live_free') return <div className="mode-banner" role="region" aria-label="Research mode"><FlaskConical size={16} aria-hidden="true" /><strong>Live research (free tier)</strong><span>Approved queries, passages and page requests leave this computer.</span></div>
+  return <div className="mode-banner" role="region" aria-label="Research mode"><FlaskConical size={16} aria-hidden="true" /><strong>Mock / offline workspace</strong><span>Live research and external providers are disabled.</span></div>
 }
 
 export function App() { return <UnsavedChanges><Shell /></UnsavedChanges> }
@@ -80,10 +97,10 @@ function Shell() {
           <Dialog.Portal><Dialog.Overlay className="scrim" /><Dialog.Content className="mobile-nav"><Dialog.Title>DeepTrace AI</Dialog.Title>
             <Dialog.Description>Research you can trace.</Dialog.Description><Dialog.Close className="icon-button close" aria-label="Close navigation"><X aria-hidden="true" /></Dialog.Close>
             <Navigation close={() => setMobileOpen(false)} /></Dialog.Content></Dialog.Portal></Dialog.Root>
-        <span>Workspace</span><span className="header-slash">/</span><strong>{location.pathname === '/settings' ? 'Settings' : location.pathname === '/' ? 'Dashboard' : 'Investigation'}</strong></div>
+        <span>Workspace</span><span className="header-slash">/</span><strong>{location.pathname === '/settings' ? 'Settings' : location.pathname === '/' ? 'Dashboard' : location.pathname.endsWith('/report') ? 'Report' : location.pathname.endsWith('/sources') ? 'Sources' : location.pathname === '/setup' ? 'Setup' : 'Investigation'}</strong></div>
         <span className="version mono">v0.1.0</span></header>
-        <div className="mode-banner"><FlaskConical size={16} aria-hidden="true" /><strong>Mock / offline workspace</strong><span>Research and external providers are disabled.</span></div>
-        <main id="main" ref={main}><Routes><Route path="/" element={<><Dashboard /><BackendStatus /></>} /><Route path="/new" element={<><div className="page-intro"><h1 tabIndex={-1}>New investigation</h1><p>Create a local draft. No provider calls.</p></div><InvestigationForm /><BackendStatus /></>} /><Route path="/investigations/:id" element={<><InvestigationPage key={location.pathname} /><BackendStatus /></>} /><Route path="/settings" element={<SettingsPage />} />
+        <ModeBanner />
+        <main id="main" ref={main}><Routes><Route path="/" element={<><Dashboard /><BackendStatus /></>} /><Route path="/new" element={<><div className="page-intro"><h1 tabIndex={-1}>New investigation</h1><p>Create a local draft. No provider calls.</p></div><InvestigationForm /><BackendStatus /></>} /><Route path="/investigations/:id" element={<><InvestigationPage key={location.pathname} /><BackendStatus /></>} /><Route path="/investigations/:id/report" element={<><ReportPage key={location.pathname} /><BackendStatus /></>} /><Route path="/investigations/:id/sources" element={<><SourcesPage key={location.pathname} /><BackendStatus /></>} /><Route path="/setup" element={<SetupPage />} /><Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<><h1 tabIndex={-1}>This page doesn’t exist</h1><Link to="/">Return to Dashboard</Link></>} /></Routes></main>
       </div>
     </div></Tooltip.Provider>

@@ -28,16 +28,50 @@ def stamp(previous: str | None = None) -> str:
     return now.isoformat()
 
 
+# Status is derived from persisted run state: migration 001 fixes the column to 'draft'.
+SELECT_INVESTIGATION = (
+    "SELECT i.id,i.title,i.question,i.description,i.status,i.created_at,i.updated_at,i.sensitive,"
+    "(SELECT a.archived_at FROM investigation_archives a WHERE a.investigation_id=i.id) "
+    "AS archived_at,"
+    "(SELECT COUNT(*) FROM sources s WHERE s.investigation_id=i.id) AS source_count,"
+    "(SELECT r.status FROM runs r WHERE r.investigation_id=i.id "
+    "ORDER BY r.created_at DESC,r.rowid DESC LIMIT 1) AS run_status,"
+    "(SELECT json_extract(r.config_snapshot_json,'$.scope') FROM runs r "
+    "WHERE r.investigation_id=i.id ORDER BY r.created_at DESC,r.rowid DESC LIMIT 1) AS run_scope "
+    "FROM investigations i "
+)
+LIFECYCLE = {
+    "queued": "Running",
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "budget_reached": "Budget reached",
+    "interrupted": "Interrupted",
+}
+
+
+def to_investigation(row: sqlite3.Row) -> Investigation:
+    values = dict(row)
+    status, scope = values.pop("run_status"), values.pop("run_scope")
+    if values["archived_at"]:
+        lifecycle = "Archived"
+    elif status is None:
+        lifecycle = "Draft"
+    elif scope == "plan_generation":
+        # Generating a plan is not research: only active planning changes the label.
+        lifecycle = "Planning" if status in {"queued", "running"} else "Draft"
+    else:
+        lifecycle = LIFECYCLE[status]
+    return Investigation.model_validate({**values, "lifecycle": lifecycle})
+
+
 def lookup(connection: sqlite3.Connection, identifier: str) -> Investigation:
     connection.row_factory = sqlite3.Row
-    row = connection.execute(
-        "SELECT id,title,question,description,status,created_at,updated_at "
-        "FROM investigations WHERE id=?",
-        (identifier,),
-    ).fetchone()
+    row = connection.execute(SELECT_INVESTIGATION + "WHERE i.id=?", (identifier,)).fetchone()
     if row is None:
         raise WorkspaceError(404, "not_found", "Investigation not found.")
-    return Investigation.model_validate(dict(row))
+    return to_investigation(row)
 
 
 class Repository:
@@ -73,6 +107,13 @@ class Repository:
     def edit(self, identifier: str, data: InvestigationEdit) -> Investigation:
         with self.database.transaction() as connection:
             current = lookup(connection, identifier)
+            if connection.execute(
+                "SELECT 1 FROM runs WHERE investigation_id=? AND status IN ('queued','running')",
+                (identifier,),
+            ).fetchone():
+                raise WorkspaceError(
+                    409, "run_active", "Wait for collection to finish before editing."
+                )
             if current.updated_at != data.expected_updated_at:
                 raise WorkspaceError(409, "conflict", "Newer changes exist. Reload before saving.")
             connection.execute(
@@ -98,13 +139,10 @@ class Repository:
                 "SELECT count(*) FROM investigations" + where, args
             ).fetchone()[0]
             rows = connection.execute(
-                "SELECT id,title,question,description,status,created_at,updated_at "
-                "FROM investigations" + where + " ORDER BY updated_at DESC,id LIMIT ? OFFSET ?",
+                SELECT_INVESTIGATION + where + " ORDER BY i.updated_at DESC,i.id LIMIT ? OFFSET ?",
                 (*args, limit, offset),
             ).fetchall()
-            return InvestigationList(
-                items=[Investigation.model_validate(dict(r)) for r in rows], total=total
-            )
+            return InvestigationList(items=[to_investigation(r) for r in rows], total=total)
 
     def plan(self, identifier: str) -> Plan:
         with self.database.connection() as connection:
@@ -131,6 +169,13 @@ class Repository:
     def save_plan(self, identifier: str, data: PlanSave) -> Plan:
         with self.database.transaction() as connection:
             investigation = lookup(connection, identifier)
+            if connection.execute(
+                "SELECT 1 FROM runs WHERE investigation_id=? AND status IN ('queued','running')",
+                (identifier,),
+            ).fetchone():
+                raise WorkspaceError(
+                    409, "run_active", "Wait for collection to finish before editing."
+                )
             current = self._plan(connection, identifier)
             if current.revision_no != data.expected_revision:
                 raise WorkspaceError(
@@ -150,8 +195,11 @@ class Repository:
                     (plan_id, identifier, stamp()),
                 )
             else:
+                # A manual edit makes the plan user-authored; drop any generation provenance.
                 connection.execute(
-                    "UPDATE plans SET revision_no=revision_no+1 WHERE id=?", (plan_id,)
+                    "UPDATE plans SET revision_no=revision_no+1,prompt_version=NULL,"
+                    "provider_id=NULL,model_id=NULL WHERE id=?",
+                    (plan_id,),
                 )
             connection.execute("DELETE FROM plan_items WHERE plan_id=?", (plan_id,))
             connection.executemany(

@@ -125,3 +125,44 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .unsaved-dialog { position: fixed; z-index: 60; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(90vw, 480px); padding: 24px; border: 1px solid var(--border-control); border-radius: 10px; background: var(--bg-surface); }
 .unsaved-dialog p { margin-top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+.evidence-workspace { margin-top: 3rem; border-top: 1px solid var(--border-decor); padding-top: 2rem; }
+.evidence-workspace form, .consent-panel { display: grid; gap: .8rem; margin: 1.5rem 0; }
+.evidence-workspace textarea { width: 100%; min-height: 7rem; }
+.evidence-list { list-style: none; padding: 0; display: grid; gap: 1rem; }
+.evidence-list > li { border: 1px solid var(--border-decor); padding: 1rem; border-radius: .5rem; overflow-wrap: anywhere; }
+.evidence-workspace nav { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.evidence-inspector { width: min(52rem, calc(100vw - 2rem)); max-height: 85dvh; overflow-y: auto; overflow-wrap: anywhere; }
+.evidence-inspector pre { white-space: pre-wrap; font: inherit; padding: 1rem; border: 1px solid var(--border-decor); }
+.evidence-inspector dd { margin: .25rem 0 1rem; overflow-wrap: anywhere; }
+.evidence-inspector blockquote { margin: .5rem 0; padding-left: 1rem; border-left: 2px solid var(--border-decor); }
+
+.consent-panel input[type="checkbox"] { width: auto; margin-right: .5rem; }
+
+/* Phase 4 report workspace — existing tokens only. Status always pairs color with text. */
+nav[aria-label="Investigation"] { margin-bottom: 24px; }
+nav[aria-label="Investigation"] a[aria-current="page"] { font-weight: 600; text-decoration-thickness: 2px; }
+.settings-card blockquote, .evidence-list blockquote { margin: .5rem 0; padding-left: 1rem; border-left: 2px solid var(--border-decor); white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-form { border-top: 1px solid var(--border-decor); margin-top: 1rem; padding-top: .5rem; }
+.citation-row { border: 1px solid var(--border-decor); border-radius: .5rem; padding: .75rem 1rem; margin: .75rem 0; min-width: 0; }
+.citation-chip { min-height: 32px; padding: 4px 10px; font-family: var(--font-mono); font-size: .75rem; }
+.badge-cited { color: var(--status-success); }
+.badge-missing { color: var(--status-warning); }
+.mode-note { border-left: 3px solid var(--status-warning); padding: .5rem 1rem; margin: 1rem 0; }
+.report-preview { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: .8125rem; padding: 1rem; border: 1px solid var(--border-decor); max-height: 70vh; overflow-y: auto; }
+.report-preview:focus-visible { outline: 2px solid var(--focus-ring, currentColor); outline-offset: 2px; }
+.hash { display: block; overflow-wrap: anywhere; }
+
+/* M1 research workspace: existing tokens only. */
+.check-row { display: flex; gap: .5rem; align-items: flex-start; margin: .75rem 0; }
+.check-row input { width: auto; margin-top: .25rem; flex-shrink: 0; }
+.budget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0 1rem; }
+.research-panel h3 { margin-top: 1.5rem; }
+.run-status { border-top: 1px solid var(--border-decor); margin-top: 1.5rem; }
+.stage-list { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding-left: 1.25rem; }
+.generated-results { border-top: 1px solid var(--border-decor); margin-top: 1.5rem; overflow-wrap: anywhere; }
+.claim-list { display: grid; gap: 1rem; padding-left: 1.25rem; }
+.provider-list, .setup-steps { display: grid; gap: 1rem; }
+.provider-list { list-style: none; padding: 0; }
+.setup-steps { padding-left: 1.25rem; }
+.settings-card dd { overflow-wrap: anywhere; }
