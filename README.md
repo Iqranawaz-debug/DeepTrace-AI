@@ -41,6 +41,7 @@ not show that the passage supports the claim.
 | Text extraction | Beautiful Soup with Python's `html.parser` |
 | Live search and model (opt-in) | Tavily and Gemini, using your own free-tier keys |
 | Tests | Pytest, Vitest, Playwright with Microsoft Edge |
+| Automation | GitHub Actions on Windows: tests, coverage, secret scan, license audit |
 
 Planned for M2: `pypdf` and `pypdfium2` for PDFs, local FastEmbed embeddings, and
 exact vector search with SQLite and NumPy.

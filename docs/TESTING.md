@@ -333,3 +333,30 @@ After the missed M1 requirements were fixed. `.\scripts\check.ps1`, unredirected
 New: `test_m1_gaps.py` covers partial reports, `Retry-After`, log rotation and the storage
 warning. `Research.test.tsx` and `m1-research.spec.ts` cover the tracker, activity log, cancel
 confirmation and evidence view. **Still not run:** any real Tavily, Gemini or website request.
+
+## CI validation (executed 2026-11-02)
+
+`.github/workflows/ci.yml` has two Windows jobs: all project checks, and a production-only
+install. **It has not yet run on GitHub**, because the commit that adds it has not been pushed.
+Every step was instead replayed in clean local clones with fresh installs, under a short path:
+
+| Step | Result |
+|---|---|
+| `uv sync --frozen`, `npm ci` | Passed |
+| `uv lock --check` | Passed, 35 packages |
+| `scripts/scan_secrets.py --history` | Passed, 143 files and full history |
+| `scripts/check.ps1` with `CI=true` | Exit 0: **308 backend** tests, **92%** line and branch coverage, **34 component** tests, build, **7 Edge** tests |
+| `scripts/audit_dependencies.py`, then `git diff --exit-code` | Passed, 375 / 329; records unchanged |
+| `uv sync --frozen --no-dev`, then `scripts/production_smoke.py` | Passed, 5 sources, report saved |
+
+Differences from the real runner: the rehearsal used Windows PowerShell 5.1 where the runner uses
+PowerShell 7, ran on this machine's existing Edge, and did not exercise the action wrappers or
+caching. The workflow was parsed as YAML and its actions checked as pinned to commits; `actionlint`
+was not run. In CI, Playwright's per-test timeout is 90 s rather than 30 s, with no retries.
+
+Coverage floor: `fail_under = 85` in `backend/pyproject.toml`, above the 80% target in NFR-M2.
+Code run in the parser subprocess is not counted, which understates `parser_process.py` (55%).
+Frontend coverage is not measured. The secret scan matches known key formats only.
+
+Windows' 260-character path limit can fail `test_secret_scan.py` when the checkout path is very
+long, because those tests create Git repositories under pytest's temporary folder.

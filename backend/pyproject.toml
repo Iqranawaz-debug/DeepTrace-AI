@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.4", "httpx>=0.28", "ruff>=0.14", "mypy>=1.18"]
+dev = ["pytest>=8.4", "httpx>=0.28", "ruff>=0.14", "mypy>=1.18", "coverage>=7.13"]
 
 [build-system]
 requires = ["hatchling==1.32.4"]
@@ -22,6 +22,16 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["deeptrace"]
+branch = true
+data_file = ".cache/coverage"
+
+[tool.coverage.report]
+fail_under = 85
+skip_covered = true
+show_missing = true
 
 [tool.ruff]
 target-version = "py314"

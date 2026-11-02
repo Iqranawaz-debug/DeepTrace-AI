@@ -3824,6 +3824,15 @@
   },
   {
     "ecosystem": "pypi",
+    "name": "coverage",
+    "version": "7.17.0",
+    "license": "Apache-2.0",
+    "development": true,
+    "installed": true,
+    "source": "https://files.pythonhosted.org/packages/d2/79/e78bd8f75a9b8e32233ce92d4607f0a21ce88a9156cace2884e7175a82f5/coverage-7.17.0.tar.gz"
+  },
+  {
+    "ecosystem": "pypi",
     "name": "fastapi",
     "version": "0.162.0",
     "license": "MIT",

@@ -1,6 +1,7 @@
 # Dependency licenses
 
-**Current state (2026-11-02):** no new dependencies since Phase 3. Beautiful Soup 4.15.0 and
+**Current state (2026-11-02):** the only addition since Phase 3 is Coverage.py 7.17.0
+(Apache-2.0), development-only with no dependencies of its own. Beautiful Soup 4.15.0 and
 soupsieve 3.0.4 (both MIT) are runtime dependencies. `httpx`, `httpcore` and `certifi` are
 development-only, so certifi's MPL-2.0 obligations do not apply to backend runtime
 distributions. Live HTTP uses Python's standard library. `dependency-inventory.json` is

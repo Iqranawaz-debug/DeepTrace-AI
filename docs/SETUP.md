@@ -98,8 +98,13 @@ owner approval. Do not delete data or edit old migration checksums to bypass an 
 .\scripts\check.ps1
 ```
 
-This runs Ruff lint/format, mypy, pytest, ESLint, TypeScript, Vitest, production
-build and Edge browser tests. Individual commands are in `TESTING.md`.
+This runs the secret scan, Ruff lint/format, mypy, pytest with coverage (85% minimum), ESLint,
+TypeScript, Vitest, production build and Edge browser tests. Do not redirect its output in
+Windows PowerShell 5.1. Individual commands are in `TESTING.md`.
+
+The same checks run on GitHub on every pull request and push to `main`
+(`.github/workflows/ci.yml`), along with a full-history secret scan, the license audit and
+a production-only install (`scripts/production_smoke.py`). CI uses no API keys.
 Browser tests require Microsoft Edge installed, use a unique synthetic fixture directory per invocation under
 `frontend/.cache`, and start/stop their own loopback servers. Close development
 servers first. Test databases never use the normal application data directory.
