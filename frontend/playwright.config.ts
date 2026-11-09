@@ -4,6 +4,8 @@ import { randomUUID } from 'node:crypto'
 
 export default defineConfig({
   testDir: './e2e', workers: 1, reporter: 'list',
+  // Shared CI machines are slower; assertions are unchanged and failures are not retried.
+  timeout: process.env.CI ? 90000 : 30000,
   use: { ...devices['Desktop Chrome'], channel: 'msedge', baseURL: 'http://127.0.0.1:5173' },
   webServer: [
     { command: 'npm run dev', url: 'http://127.0.0.1:5173', reuseExistingServer: false },

@@ -5,7 +5,12 @@ import secrets
 
 from fastapi import Request
 
-WORKSPACE = re.compile(r"^/api/investigations(?:/[^/]+(?:/plan)?)?$")
+WORKSPACE = re.compile(
+    r"^/api/(?:investigations(?:/[^/]+(?:/plan(?:/generate)?|/runs|/sources|/saved-urls"
+    r"|/evidence-notes|/answer|/reports|/research|/sensitive|/archive)?)?|runs/[^/]+/cancel"
+    r"|web-consent(?:/revoke)?|providers/[^/]+/(?:credential|consent))$"
+)
+DELETABLE = re.compile(r"^/api/(?:investigations/[^/]+|providers/[^/]+/(?:credential|consent))$")
 MAX_BODY = 65536
 
 
@@ -14,7 +19,12 @@ def mutation_failure(
 ) -> tuple[int, str, str] | None:
     if request.method in {"GET", "HEAD", "OPTIONS"}:
         return None
-    if request.method not in {"POST", "PATCH", "PUT"} or not WORKSPACE.fullmatch(request.url.path):
+    allowed = (
+        DELETABLE.fullmatch(request.url.path)
+        if request.method == "DELETE"
+        else request.method in {"POST", "PATCH", "PUT"} and WORKSPACE.fullmatch(request.url.path)
+    )
+    if not allowed:
         return 405, "method_not_allowed", "This operation is unavailable."
     if len(request.headers.getlist("origin")) != 1 or request.headers.get("origin") not in origins:
         return 403, "invalid_origin", "A trusted browser origin is required."

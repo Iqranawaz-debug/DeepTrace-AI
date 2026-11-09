@@ -27,7 +27,7 @@ def test_populated_phase1_upgrade_and_rollback(tmp_path, fail):
             db.migrate(migrations)
     else:
         db.migrate(migrations)
-        assert db.ready()
+        assert not db.ready()  # This fixture intentionally stops at historical schema 002.
     with db.connection() as connection:
         assert connection.execute("SELECT title FROM investigations").fetchone()[0] == "Saved title"
         assert connection.execute("SELECT MAX(version) FROM schema_meta").fetchone()[0] == (

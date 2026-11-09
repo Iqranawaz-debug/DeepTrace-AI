@@ -21,9 +21,9 @@ def test_health_readiness_capabilities(client):
     assert client.get("/api/health").json()["status"] == "ok"
     assert client.get("/api/ready").json()["status"] == "ready"
     assert client.get("/api/capabilities").json() == {
-        "phase": 2,
+        "phase": 5,
         "mode": "mock",
-        "research": False,
+        "research": True,
         "outbound": False,
         "investigations": True,
     }
@@ -65,7 +65,7 @@ def test_readiness_reports_database_failure(client):
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {"mode": "live_free"},
+        {"mode": "live_paid"},
         {"allow_paid_apis": True},
         {"host": "0.0.0.0"},
         {"origins": ["*"]},

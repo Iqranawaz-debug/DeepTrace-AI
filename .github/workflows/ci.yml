@@ -1,0 +1,81 @@
+# Offline-first checks. No provider keys are configured and tests make no live research calls;
+# network use is limited to installing locked dependencies and the tools pinned below.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.13.4"
+  PYTHON_VERSION: "3.14"
+  NODE_VERSION: "24.21.0"
+
+jobs:
+  checks:
+    name: Lint, types, tests, coverage, browser, licenses
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # The secret scan covers full history.
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked backend dependencies
+        working-directory: backend
+        run: uv sync --frozen --python ${{ env.PYTHON_VERSION }}
+      - name: Install locked frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Lockfile matches manifest
+        working-directory: backend
+        run: uv lock --check
+      - name: Secret scan, including history
+        run: backend/.venv/Scripts/python.exe scripts/scan_secrets.py --history
+      - name: Lint, types, tests, coverage, build and Edge tests
+        shell: pwsh
+        run: ./scripts/check.ps1
+      - name: License audit
+        run: backend/.venv/Scripts/python.exe scripts/audit_dependencies.py
+      - name: License records are current
+        run: git diff --exit-code -- docs/dependency-inventory.json docs/THIRD_PARTY_NOTICES.txt frontend/public/THIRD_PARTY_NOTICES.txt
+      - name: Keep browser results for diagnosis
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-test-results
+          path: frontend/test-results/
+          retention-days: 7
+
+  production:
+    name: Production-only install
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+      - name: Install runtime dependencies only
+        working-directory: backend
+        run: uv sync --frozen --no-dev --python ${{ env.PYTHON_VERSION }}
+      - name: Run the application without development packages
+        run: backend/.venv/Scripts/python.exe scripts/production_smoke.py

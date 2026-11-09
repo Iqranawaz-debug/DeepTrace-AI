@@ -33,7 +33,7 @@ def check_license(name, license_id):
 
 
 def legal_file(path):
-    return path.name.lower().startswith(("license", "licence", "copying", "notice"))
+    return path.name.lower().startswith(("license", "licence", "copying", "notice", "authors"))
 
 
 def section(name, version, license_id, files):
@@ -94,6 +94,8 @@ def main():
         # Old metadata uses classifiers; verified against the included license files.
         if not license_id:
             license_id = {"colorama": "BSD-3-Clause", "pathspec": "MPL-2.0"}.get(name, "UNKNOWN")
+        if name == "beautifulsoup4" and dist.version == "4.15.0" and license_id == "MIT License":
+            license_id = "MIT"  # Exact wheel's included MIT text verified before approval.
         check_license(name, license_id)
         files = [Path(dist.locate_file(f)) for f in (dist.files or []) if legal_file(Path(f))]
         inventory.append({"ecosystem": "pypi", "name": name, "version": dist.version,

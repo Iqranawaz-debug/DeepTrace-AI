@@ -62,7 +62,7 @@ export function InvestigationForm({ initial, onSaved }: { initial?: Investigatio
     <h2>{initial ? 'Investigation details' : 'Your research question'}</h2>
     <fieldset disabled={busy}><legend className="sr-only">Investigation fields</legend>
       <label className="field">Title<input required maxLength={120} value={fields.title} onChange={e => setFields({ ...fields, title: e.target.value })} /><span>1–120 characters</span></label>
-      <label className="field">Main research question<textarea required minLength={10} maxLength={1000} rows={4} value={fields.question} onChange={e => setFields({ ...fields, question: e.target.value })} /><span>10–1,000 characters. No question is sent to a provider.</span></label>
+      <label className="field">Main research question<textarea required minLength={10} maxLength={1000} rows={4} value={fields.question} onChange={e => setFields({ ...fields, question: e.target.value })} /><span>10–1,000 characters. In live mode it is sent to the language model only when you generate a plan or start research.</span></label>
       <label className="field">Description (optional)<textarea maxLength={5000} rows={3} value={fields.description ?? ''} onChange={e => setFields({ ...fields, description: e.target.value })} /><span>Up to 5,000 characters</span></label>
     </fieldset>
     {error && <p role="alert" className="error-state">{error}</p>}

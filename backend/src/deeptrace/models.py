@@ -36,6 +36,10 @@ class Investigation(StrictModel):
     status: Literal["draft"]
     created_at: str
     updated_at: str
+    sensitive: bool = False
+    archived_at: str | None = None
+    source_count: int = 0
+    lifecycle: str = "Draft"
 
 
 class InvestigationList(StrictModel):

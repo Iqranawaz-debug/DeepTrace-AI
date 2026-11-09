@@ -3788,6 +3788,15 @@
   },
   {
     "ecosystem": "pypi",
+    "name": "beautifulsoup4",
+    "version": "4.15.0",
+    "license": "MIT",
+    "development": false,
+    "installed": true,
+    "source": "https://files.pythonhosted.org/packages/43/65/318323f98dbee45d42dff61d8f047181bc6f2268a9068cfad035a46be5af/beautifulsoup4-4.15.0.tar.gz"
+  },
+  {
+    "ecosystem": "pypi",
     "name": "certifi",
     "version": "2026.10.23",
     "license": "MPL-2.0",
@@ -3812,6 +3821,15 @@
     "development": true,
     "installed": true,
     "source": "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz"
+  },
+  {
+    "ecosystem": "pypi",
+    "name": "coverage",
+    "version": "7.17.0",
+    "license": "Apache-2.0",
+    "development": true,
+    "installed": true,
+    "source": "https://files.pythonhosted.org/packages/d2/79/e78bd8f75a9b8e32233ce92d4607f0a21ce88a9156cace2884e7175a82f5/coverage-7.17.0.tar.gz"
   },
   {
     "ecosystem": "pypi",
@@ -3992,6 +4010,15 @@
     "development": true,
     "installed": true,
     "source": "https://files.pythonhosted.org/packages/ae/58/690cf56da80c8f2c8bf12042b6017beac2c34fe961f65420bcb3fb7fac38/ruff-0.17.2.tar.gz"
+  },
+  {
+    "ecosystem": "pypi",
+    "name": "soupsieve",
+    "version": "3.0.4",
+    "license": "MIT",
+    "development": false,
+    "installed": true,
+    "source": "https://files.pythonhosted.org/packages/19/63/0b6bae54546aed98d72f12d09df57b19a287f01c84d22047fa2e23772ab9/soupsieve-3.0.4.tar.gz"
   },
   {
     "ecosystem": "pypi",

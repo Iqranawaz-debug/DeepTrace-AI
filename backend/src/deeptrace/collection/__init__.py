@@ -1,0 +1,1 @@
+"""Offline-gated evidence collection."""
