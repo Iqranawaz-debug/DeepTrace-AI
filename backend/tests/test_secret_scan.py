@@ -17,6 +17,7 @@ spec.loader.exec_module(scanner)
 SEEDED = {
     "tavily-key": "tvly-" + "a1B2c3D4" * 4,
     "google-api-key": "AIza" + "SyA1b2C3" * 5,
+    "google-api-key-new-format": "AQ." + "Ab8RN6" + "a1B2c3D4" * 4,
     "anthropic-or-openai-key": "sk-" + "ant-" + "a1B2c3D4" * 4,
     "github-token": "ghp_" + "a1B2c3D4" * 5,
     "aws-access-key": "AKIA" + "ABCDEFGH" * 2,

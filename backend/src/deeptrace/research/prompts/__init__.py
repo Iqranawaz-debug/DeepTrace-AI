@@ -3,7 +3,7 @@
 from pathlib import Path
 
 PLAN_VERSION = "plan-v1"
-SYNTHESIZE_VERSION = "synthesize-v1"
+SYNTHESIZE_VERSION = "synthesize-v2"
 _HERE = Path(__file__).parent
 
 
@@ -24,7 +24,7 @@ def synthesize_prompt(question: str, passages: list[tuple[str, str, str]]) -> st
         "<<<END PASSAGE>>>"
         for display, title, text in passages
     ]
-    template = (_HERE / "synthesize_v1.txt").read_text(encoding="utf-8")
+    template = (_HERE / "synthesize_v2.txt").read_text(encoding="utf-8")
     return template.replace("{question}", neutralize(question)).replace(
         "{passages}", "\n".join(blocks)
     )

@@ -11,6 +11,8 @@ Rules:
 - Every factual claim cites at least one supplied passage_id. If the passages do not establish something, state that claim with an empty citations list.
 - A quote must be copied exactly from the cited passage. Use null rather than paraphrasing inside a quote.
 - Where passages disagree, say so and cite both sides. Do not choose a winner.
+- When several passages from different sources support a point, cite each of them. Cover every
+  part of the question the passages address, not only the best-supported part.
 - Never invent passage IDs, sources, authors, dates or quotations.
 - When evidence is insufficient, say so and put what is missing in needed_evidence.
 

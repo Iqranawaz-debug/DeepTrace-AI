@@ -29,7 +29,7 @@ export function InvestigationPage() {
         // Refresh activity display only; never replace unsaved form fields.
         try { const [investigation, plan] = await Promise.all([getInvestigation(id), getPlan(id)]); setData(current => current ? { ...current, investigation, plan } : current) } catch { /* Saved plan remains confirmed. */ }
       }} />
-      <ResearchPanel key={`research-${id}`} investigationId={id} plan={data.plan} sensitive={!!data.investigation.sensitive} archived={!!data.investigation.archived_at} onPlanGenerated={() => { void getPlan(id).then(plan => { setData(current => current ? { ...current, plan } : current); setPlanView(view => view + 1) }) }} />
+      <ResearchPanel key={`research-${id}`} investigationId={id} plan={data.plan} sensitive={!!data.investigation.sensitive} archived={!!data.investigation.archived_at} onPlanGenerated={() => { void getPlan(id).then(plan => { setData(current => current ? { ...current, plan } : current); setPlanView(view => view + 1) }) }} onRunFinished={() => { void getInvestigation(id).then(investigation => setData(current => current ? { ...current, investigation } : current)).catch(() => {}) }} />
       <EvidenceWorkspace key={id} investigationId={id} />
       <ManageInvestigation investigation={data.investigation} onChanged={() => { void getInvestigation(id).then(investigation => setData(current => current ? { ...current, investigation } : current)) }} />
       <p>To resolve a conflict, copy your unsaved edits, then refresh and confirm discarding them to load the latest saved version.</p>

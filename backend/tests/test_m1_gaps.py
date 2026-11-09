@@ -174,3 +174,28 @@ def test_progress_reports_live_counts_and_queries(make):  # noqa: F811
     answer = c.get(f"/api/investigations/{inv}/generated-answer").json()["answer"]
     cited = [cite for claim in answer["claims"] for cite in claim["citations"]]
     assert cited and all(cite["source_status"] == "fetched" for cite in cited)
+
+
+def test_model_timeout_is_not_retried_but_rate_limits_are(make, monkeypatch):  # noqa: F811
+    from deeptrace.research import pipeline
+
+    monkeypatch.setattr(Gateway, "backoff", staticmethod(lambda attempt: 0.0))
+    assert pipeline.MODEL_TIMEOUT >= 120 and "timeout" not in pipeline.MODEL_RETRYABLE
+    slow = ScriptedLLM([ProviderError("timeout")] * 3)
+    c = make(llm_provider=slow)
+    inv = investigation(c)
+    url = f"/api/investigations/{inv}/plan/generate"
+    from test_collection_api import terminal
+
+    run = terminal(c, inv, c.post(url, json={"expected_revision": 0}).json()["id"])
+    assert (run["status"], run["error_code"]) == ("failed", "timeout")
+    assert len(slow.prompts) == 1  # One long wait, not three.
+    busy = ScriptedLLM(
+        [
+            ProviderError("rate_limited"),
+            '{"steps":[{"sub_question":"a","search_query":"b"}],"narrow_reason":"narrow"}',
+        ]
+    )
+    c.app.state.gateway.llm_provider = busy
+    run = terminal(c, inv, c.post(url, json={"expected_revision": 0}).json()["id"])
+    assert run["status"] == "completed" and len(busy.prompts) == 2

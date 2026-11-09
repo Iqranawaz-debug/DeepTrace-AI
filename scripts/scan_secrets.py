@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RULES = {
     "tavily-key": re.compile(r"\btvly-[A-Za-z0-9_]{20,}"),
     "google-api-key": re.compile(r"\bAIza[A-Za-z0-9_-]{30,}"),
+    "google-api-key-new-format": re.compile(r"\bAQ\.[A-Za-z0-9_.-]{30,}"),
     "anthropic-or-openai-key": re.compile(r"\bsk-(?:ant-)?[A-Za-z0-9_-]{20,}"),
     "github-token": re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,})"),
     "aws-access-key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),

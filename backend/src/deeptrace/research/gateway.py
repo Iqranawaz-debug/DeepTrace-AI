@@ -101,7 +101,14 @@ class Gateway:
         if provider in ENV_NAMES and not resolve_key(self.credentials, provider):
             raise ProviderError("not_configured")
 
-    def call(self, run: str, provider: str, operation: str, action: Callable[[], T]) -> T:
+    def call(
+        self,
+        run: str,
+        provider: str,
+        operation: str,
+        action: Callable[[], T],
+        retryable: frozenset[str] = RETRYABLE,
+    ) -> T:
         """Admit before every attempt, record every attempt, retry only safe failures."""
         for attempt in range(1, MAX_ATTEMPTS + 1):
             self.admit(provider)
@@ -111,7 +118,7 @@ class Gateway:
             except ProviderError as exc:
                 self.repo.usage_end(usage, exc.category)
                 self.last_failure[provider] = exc.category
-                if exc.category not in RETRYABLE or attempt == MAX_ATTEMPTS:
+                if exc.category not in retryable or attempt == MAX_ATTEMPTS:
                     raise
                 wait = max(self.backoff(attempt), exc.retry_after or 0.0)
                 if wait > MAX_RETRY_WAIT or self.stop.wait(wait):

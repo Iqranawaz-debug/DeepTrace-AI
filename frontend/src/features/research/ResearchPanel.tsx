@@ -13,7 +13,9 @@ const FAILURES: Record<string, string> = {
   not_configured: 'A provider is not configured. Finish setup in Settings.',
   rate_limited: 'The provider is rate limiting requests. Retry later.',
   unavailable: 'The provider is unavailable. Retry later.',
-  timeout: 'The provider did not respond in time. Retry later.',
+  timeout: 'A provider did not answer in time (the language model can be slow). Try again.',
+  dns_failed: 'A website address could not be found.',
+  robots_unavailable: "A website's robots.txt could not be read, so its page was skipped.",
   malformed_response: 'The model returned an invalid response, even after a retry.',
   sensitive_blocked: 'This investigation is marked sensitive, so nothing was sent to the hosted model.',
   quota_exhausted: 'The provider quota is exhausted. Nothing further was requested and no paid fallback exists.',
@@ -36,7 +38,7 @@ function banner(status: string, code: string | null): string {
 }
 const STATUS_TEXT: Record<string, string> = { completed: 'Completed', failed: 'Failed', cancelled: 'Cancelled', budget_reached: 'Budget reached', interrupted: 'Interrupted', queued: 'Queued', running: 'Running' }
 
-export function ResearchPanel({ investigationId, plan, sensitive, archived, onPlanGenerated }: { investigationId: string; plan: Plan; sensitive: boolean; archived: boolean; onPlanGenerated: () => void }) {
+export function ResearchPanel({ investigationId, plan, sensitive, archived, onPlanGenerated, onRunFinished }: { investigationId: string; plan: Plan; sensitive: boolean; archived: boolean; onPlanGenerated: () => void; onRunFinished?: () => void }) {
   const [providers, setProviders] = useState<Providers>()
   const [runs, setRuns] = useState<CollectionRun[]>([])
   const [progress, setProgress] = useState<Progress>()
@@ -50,9 +52,10 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
   const [confirming, setConfirming] = useState(false)
   const key = useRef<{ action: string; id: string } | null>(null)
   const lastActive = useRef<string | null>(null)
+  const finished = useRef(onRunFinished)
+  useEffect(() => { finished.current = onRunFinished }, [onRunFinished])
   const pipelineRuns = runs.filter(run => run.scope && run.scope !== 'evidence_collection')
   const latest = pipelineRuns[0]
-  const anyActive = runs.some(run => ACTIVE.includes(run.status))
   const refresh = useCallback(async () => {
     const [p, r] = await Promise.all([getProviders(), listRuns(investigationId)])
     const newest = r.find(run => run.scope && run.scope !== 'evidence_collection')
@@ -66,6 +69,7 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
       else if (lastActive.current === newest.id) {
         lastActive.current = null
         setResultKey(value => value + 1)
+        finished.current?.()  // The page header and Manage status read the new lifecycle.
         if (newest.scope === 'plan_generation' && newest.status === 'completed') setPlanReady(true)
       }
     }
@@ -99,18 +103,25 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
     } finally { setBusy(false) }
   }
   const mock = providers?.mode === 'mock'
-  const reason = !providers ? '' : archived ? 'This investigation is archived.' : providers.mode === 'offline' ? 'Offline mode: new research is disabled.' : (providers.blockers ?? []).length ? (providers.blockers ?? []).join(' ') : mock && !providers.consent ? 'Enable synthetic collection in the Evidence workspace below first.' : anyActive ? 'A run is already active.' : ''
+  const reason = !providers ? '' : archived ? 'This investigation is archived.' : providers.mode === 'offline' ? 'Offline mode: new research is disabled.' : (providers.blockers ?? []).length ? (providers.blockers ?? []).join(' ') : mock && !providers.consent ? 'Enable synthetic collection in the Evidence workspace below first.' : ''
   const modelBlocked = !mock && sensitive
+  const activeRun = runs.find(run => ACTIVE.includes(run.status))
+  // One explanation while something runs, instead of several disabled controls saying different things.
+  const waiting = !activeRun ? '' : activeRun.scope === 'plan_generation'
+    ? `${mock ? 'The simulated model' : 'Gemini'} is drafting your plan. ${mock ? '' : 'This can take up to 2½ minutes. '}Plan editing and research are paused until it finishes.`
+    : activeRun.scope === 'research_pipeline' ? 'Research is running. Plan editing and new runs are paused until it finishes; you can cancel it below.'
+    : 'A collection run is active. New runs wait until it finishes.'
   return <section className="settings-card research-panel" aria-labelledby="research-title">
     <h2 id="research-title">Research</h2>
     <p>{mock ? 'Mock mode: simulated search and a simulated model use synthetic fixtures. Nothing leaves this computer and nothing here is real research.' : providers?.mode === 'live_free' ? <>Live mode: your queries go to Tavily, your question and selected passages go to Gemini, and pages are requested from public websites. Review this in <Link to="/settings">Settings</Link>.</> : 'Saved research can be read here.'}</p>
+    {waiting && <p role="status" className="mode-note">{waiting}</p>}
     {reason && <p className="mode-note">{reason}{providers && providers.mode === 'live_free' && (providers.blockers ?? []).length > 0 && <> <Link to="/setup">Open setup</Link></>}</p>}
     {modelBlocked && <p className="mode-note">Marked sensitive: a hosted model cannot be used, so plans and answers cannot be generated. Search and page retrieval still run.</p>}
 
     <h3>1. Plan</h3>
     <p>{plan.items.length ? `Your saved plan has ${plan.items.length} step(s).` : 'No plan yet. Write one above, or generate a starting point.'} Generated plans can be edited before you start.</p>
     {plan.items.length > 0 && <label className="check-row"><input type="checkbox" checked={replace} onChange={event => setReplace(event.target.checked)} /> Replace my saved plan with a generated one</label>}
-    <div className="actions"><button className="button secondary" disabled={busy || !!reason || modelBlocked || (plan.items.length > 0 && !replace)} onClick={() => void begin('plan', (id, revision) => generatePlan(investigationId, id, revision, replace), 'Generating a plan.')}>Generate plan</button></div>
+    <div className="actions"><button className="button secondary" disabled={busy || !!reason || !!activeRun || modelBlocked || (plan.items.length > 0 && !replace)} onClick={() => void begin('plan', (id, revision) => generatePlan(investigationId, id, revision, replace), '')}>Generate plan</button></div>
     {planReady && <p role="status" className="mode-note">The generated plan is saved{progress?.narrow_reason ? ` (${progress.narrow_reason})` : ''}. <button className="button secondary" onClick={() => { setPlanReady(false); setReplace(false); onPlanGenerated() }}>Show generated plan</button></p>}
 
     <h3>2. Limits</h3>
@@ -118,7 +129,7 @@ export function ResearchPanel({ investigationId, plan, sensitive, archived, onPl
     {budgets && providers?.budget_ceilings && <div className="budget-grid">{(Object.keys(BUDGET_LABELS) as (keyof Budgets)[]).map(name => <label key={name} className="field">{BUDGET_LABELS[name]}<input type="number" min={name === 'max_tokens' ? 1000 : 1} max={providers.budget_ceilings?.[name]} value={budgets[name]} onChange={event => setBudgets({ ...budgets, [name]: Number(event.target.value) })} /><span>Up to {providers.budget_ceilings?.[name].toLocaleString()}</span></label>)}</div>}
 
     <h3>3. Start</h3>
-    <div className="actions"><button className="button primary" disabled={busy || !!reason || !plan.items.length || !budgets} onClick={() => budgets && void begin('research', (id, revision) => startResearch(investigationId, id, revision, budgets), 'Research started.')}>Start research</button><span>{plan.items.length ? 'Runs your saved plan. Unsaved edits are not included.' : 'Add at least one plan step first.'}</span></div>
+    <div className="actions"><button className="button primary" disabled={busy || !!reason || !!activeRun || !plan.items.length || !budgets} onClick={() => budgets && void begin('research', (id, revision) => startResearch(investigationId, id, revision, budgets), '')}>Start research</button><span>{activeRun ? '' : plan.items.length ? 'Runs your saved plan. Unsaved edits are not included.' : 'Add at least one plan step first.'}</span></div>
     {notice && <p role="status">{notice}</p>}
     {error && <p role="alert" className="error-state">{error}</p>}
 

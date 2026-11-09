@@ -66,7 +66,7 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
 
   const article = page.getByRole('article', { name: 'Research report version 1' })
   const markdown = await article.locator('pre').innerText()
-  for (const expected of ['AI-generated research aid. Verify important findings using original sources.', 'SIMULATED RESEARCH', '## Findings', '## Supporting Evidence', '## Conflicting or Missing Evidence', '## Limitations', '## Methodology', '## References', 'synthesize-v1']) expect(markdown).toContain(expected)
+  for (const expected of ['AI-generated research aid. Verify important findings using original sources.', 'SIMULATED RESEARCH', '## Findings', '## Supporting Evidence', '## Conflicting or Missing Evidence', '## Limitations', '## Methodology', '## References', 'synthesize-v2']) expect(markdown).toContain(expected)
   const [download] = await Promise.all([page.waitForEvent('download'), article.getByRole('link', { name: 'Download report (.md)' }).click()])
   expect(download.suggestedFilename()).toMatch(/^deeptrace-research-[0-9a-f]{8}-v1\.md$/)
   const bytes = await readFile(await download.path())

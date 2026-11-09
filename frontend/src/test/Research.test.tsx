@@ -257,3 +257,33 @@ it('shows saved size and warns only over the threshold', async () => {
   render(<RouterProvider router={createMemoryRouter([{ path: '*', element: <UnsavedChanges><ManageInvestigation investigation={investigation} onChanged={() => {}} /></UnsavedChanges> }])} />)
   expect(await screen.findByText(/stores over 500 MB of text/)).toBeVisible()
 })
+
+it('explains a blocked save during an active run instead of reporting a conflict', () => {
+  const blocked = new api.ApiError(409, 'Wait for collection to finish before editing.', 'run_active')
+  expect(blocked.message).toBe('A run is in progress. Wait for it to finish, then save again. Your edits are still here.')
+  expect(blocked.message).not.toContain('Newer changes exist')
+  expect(new api.ApiError(409, 'Newer plan changes exist.', 'conflict').message).toContain('Newer changes exist')
+})
+
+it('shows one clear message while Gemini drafts a plan, not contradictory hints', async () => {
+  vi.mocked(api.getProviders).mockResolvedValue({ ...mockProviders, mode: 'live_free', live_network: true, fixture_collection: false })
+  vi.mocked(api.listRuns).mockResolvedValue([run({ scope: 'plan_generation', mode: 'live_free' })])
+  vi.mocked(api.getProgress).mockResolvedValue(progress({ scope: 'plan_generation', stages: [] }))
+  panel({ plan: { id: null, revision_no: 0, items: [] } })
+  expect(await screen.findByText(/Gemini is drafting your plan\. This can take up to 2½ minutes\./)).toBeVisible()
+  expect(screen.queryByText('A run is already active.')).not.toBeInTheDocument()
+  expect(screen.queryByText('Add at least one plan step first.')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Generate plan' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Start research' })).toBeDisabled()
+})
+
+it('tells the page when a run finishes so its status label updates', async () => {
+  const onRunFinished = vi.fn()
+  vi.mocked(api.listRuns).mockResolvedValue([run({})])
+  panel({ onRunFinished })
+  expect(await screen.findByText(/SIMULATED · Running/)).toBeVisible()
+  expect(onRunFinished).not.toHaveBeenCalled()
+  vi.mocked(api.listRuns).mockResolvedValue([run({ status: 'completed' })])
+  vi.mocked(api.getProgress).mockResolvedValue(progress({ status: 'completed' }))
+  await waitFor(() => expect(onRunFinished).toHaveBeenCalledTimes(1), { timeout: 5000 })
+})

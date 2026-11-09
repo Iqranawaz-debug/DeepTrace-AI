@@ -17,22 +17,28 @@ from deeptrace.collection.policy import CollectionError, resolve
 from deeptrace.collection.transport import PinnedTransport, Reply
 
 
-def bounded_resolve(host: str, timeout: float = 5.0) -> list[str]:
-    """getaddrinfo has no deadline of its own, so it runs in a disposable daemon thread."""
-    result: list[list[str]] = []
+def bounded_resolve(host: str, timeout: float = 5.0, attempts: int = 2) -> list[str]:
+    """getaddrinfo has no deadline of its own, so it runs in a disposable daemon thread.
 
-    def work() -> None:
-        try:
-            result.append(resolve(host))
-        except OSError:
-            result.append([])
+    One retry absorbs the transient lookup failures seen on home networks.
+    """
+    for attempt in range(attempts):
+        result: list[list[str]] = []
 
-    thread = threading.Thread(target=work, name="dns-resolve", daemon=True)
-    thread.start()
-    thread.join(timeout)
-    if not result or not result[0]:
-        raise CollectionError("dns_failed")
-    return result[0]
+        def work(sink: list[list[str]] = result) -> None:
+            try:
+                sink.append(resolve(host))
+            except OSError:
+                sink.append([])
+
+        thread = threading.Thread(target=work, name="dns-resolve", daemon=True)
+        thread.start()
+        thread.join(timeout)
+        if result and result[0]:
+            return result[0]
+        if attempt + 1 < attempts:
+            time.sleep(1.0)
+    raise CollectionError("dns_failed")
 
 
 class PinnedHTTPConnection(http.client.HTTPConnection):

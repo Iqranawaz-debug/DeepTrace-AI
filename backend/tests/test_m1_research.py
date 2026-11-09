@@ -204,7 +204,7 @@ def test_full_mock_journey_produces_a_traceable_report(make):
     statuses = {s["status"] for s in run["sources"]}
     assert "fetched" in statuses
     answer = c.get(f"/api/investigations/{inv}/generated-answer").json()["answer"]
-    assert answer["provider_id"] == "mock_llm" and answer["prompt_version"] == "synthesize-v1"
+    assert answer["provider_id"] == "mock_llm" and answer["prompt_version"] == "synthesize-v2"
     states = {claim["evidence_state"] for claim in answer["claims"]}
     assert states == {"cited", "not_established"}
     # Every displayed citation resolves to a stored, same-investigation passage.
@@ -223,7 +223,7 @@ def test_full_mock_journey_produces_a_traceable_report(make):
                     "References"):  # fmt: skip
         assert f"## {section}" in text, section
     for required in ("AI-generated research aid. Verify important findings using original sources.",
-                     "SIMULATED RESEARCH", "synthesize-v1", "mock-deterministic-v1", "mock_llm",
+                     "SIMULATED RESEARCH", "synthesize-v2", "mock-deterministic-v1", "mock_llm",
                      "Search queries:", "Not established", "Retrieved (UTC)"):  # fmt: skip
         assert required in text, required
     assert kernel.sha256(text) == report["markdown_sha256"]

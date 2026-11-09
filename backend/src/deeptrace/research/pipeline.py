@@ -13,6 +13,7 @@ from collections import Counter
 from collections.abc import Callable
 from functools import partial
 from typing import Any
+from urllib.parse import urlsplit
 
 from deeptrace.collection.extractor import Extraction
 from deeptrace.collection.fetcher import Fetcher, Transport
@@ -39,8 +40,12 @@ from deeptrace.storage.research_repository import (
 
 MAX_OUTPUT_TOKENS = 4096
 MAX_ALLOWED_PASSAGES = 12
+MAX_PASSAGES_PER_SOURCE = 4  # One long page must not crowd every other source out.
 MODEL_ATTEMPTS = 2  # FR-P3: bounded retry for malformed model output.
 PROVIDER_TIMEOUT = 45.0
+# Thinking models can take minutes to answer; a timeout is not retried, so one wait is the cost.
+MODEL_TIMEOUT = 150.0
+MODEL_RETRYABLE = frozenset({"rate_limited", "unavailable"})
 NO_MODEL = "none"
 LIMIT_NAMES = {
     "search_budget": "the search limit",
@@ -75,7 +80,16 @@ def rank_passages(terms_from: list[str], passages: list[dict[str, Any]]) -> list
         found = Counter(_WORD.findall(passage["text"].lower()))
         return sum(found[term] for term in terms)
 
-    return sorted(passages, key=lambda p: (-score(p), p["display_id"]))[:MAX_ALLOWED_PASSAGES]
+    chosen: list[dict[str, Any]] = []
+    per_source: Counter[str] = Counter()
+    for passage in sorted(passages, key=lambda p: (-score(p), p["display_id"])):
+        source = passage.get("source_id", passage["display_id"])
+        if per_source[source] < MAX_PASSAGES_PER_SOURCE:
+            per_source[source] += 1
+            chosen.append(passage)
+        if len(chosen) == MAX_ALLOWED_PASSAGES:
+            break
+    return chosen
 
 
 def validate_claims(
@@ -185,9 +199,9 @@ class Pipeline:
                 raise Halt("budget_reached", "token_budget")
 
             def request() -> LLMText:
-                return llm.generate(prompt, MAX_OUTPUT_TOKENS, PROVIDER_TIMEOUT)
+                return llm.generate(prompt, MAX_OUTPUT_TOKENS, MODEL_TIMEOUT)
 
-            result = self.gateway.call(run, llm.id, operation, request)
+            result = self.gateway.call(run, llm.id, operation, request, MODEL_RETRYABLE)
             used = len(prompt) // 4 + len(result.text) // 4
             spent[0] += used
             self.research.record_tokens(
@@ -238,6 +252,10 @@ class Pipeline:
         # Discover: ceilings are split deterministically before any call is made.
         per_query = min(3, max(1, budgets.max_pages // max(1, len(items))))
         leads: dict[str, str] = {}
+        sites: set[str] = set()
+        same_site = 0
+        # Live runs read one page per website, so a single site cannot dominate the evidence.
+        one_per_site = self.gateway.mode == "live_free"
         search = self.gateway.search_provider
         searches = 0
         for item in items:
@@ -269,7 +287,16 @@ class Pipeline:
                 except CollectionError:
                     omissions.append("A search result with an unsafe or invalid URL was skipped.")
                     continue
-                leads.setdefault(canonical, lead.url)
+                site = urlsplit(canonical).hostname or canonical
+                if canonical in leads:
+                    continue
+                if one_per_site and site in sites:
+                    same_site += 1
+                    continue
+                sites.add(site)
+                leads[canonical] = lead.url
+        if same_site:
+            omissions.append(f"{same_site} result(s) from an already-used website were skipped.")
         self.research.stage(
             identifier, "discover", "completed", {"searches": searches, "leads": len(leads)}
         )

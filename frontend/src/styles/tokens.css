@@ -1,17 +1,19 @@
 @import 'tailwindcss';
 
 :root {
+  /* Forest & Teal palette (DESIGN.md §3). Every colour the app uses is defined here. */
   color-scheme: dark;
-  --bg-app: #001F3F; --bg-surface: #003366; --bg-sunken: #00152B;
-  --bg-raised: #0A3D70; --bg-selected: #005B96;
-  --text-default: #F2F6FA; --text-secondary: #A9BBD0; --text-muted: #8FA6C0;
-  --text-link: #5AA9FF; --text-on-primary: #FFFFFF;
-  --border-decor: #1B4B7C; --border-control: #6F93BD;
-  --accent-interactive: #007BFF; --accent-evidence: #AEEEEE; --focus-ring: #AEEEEE;
+  --bg-app: #0F1A17; --bg-surface: #16261F; --bg-sunken: #09110E;
+  --bg-raised: #1C3029; --bg-selected: #1F3A30;
+  --text-default: #F1F6F3; --text-secondary: #A9C2B8; --text-muted: #8FAA9F;
+  --text-link: #5ED6B8; --text-on-primary: #FFFFFF;
+  --border-decor: #24423A; --border-control: #6F9E90;
+  --accent-interactive: #2BB596; --accent-evidence: #9EEBD8; --focus-ring: #9EEBD8;
   --status-success: #4ADE9F; --status-warning: #FFC857; --status-danger: #FF8A8A;
   --status-contested: #C9A7FF;
-  --button-primary: #0066D9; --button-hover: #005BC4; --button-pressed: #0050AD;
-  --bg-scrim: rgba(0, 21, 43, .72);
+  --button-primary: #1E7F69; --button-hover: #1A705D; --button-pressed: #16614F;
+  --bg-scrim: rgba(9, 17, 14, .72);
+  --highlight: rgba(158, 235, 216, .22);
   --tint-danger: rgba(255, 138, 138, .14);
 }
 @theme inline {

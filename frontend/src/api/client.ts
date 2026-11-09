@@ -20,17 +20,20 @@ export class ApiError extends Error {
   status: number
   /** Fixed server-authored message (never echoes user content), shown alongside the generic one. */
   detail: string
-  constructor(status: number, detail = '') {
-    super(status === 409 ? 'Newer changes exist. Your edits are still here. Copy them before loading the latest saved version.' : status === 403 ? 'Local session expired or request denied. Your edits are still here. Retry to renew the session.' : status === 422 ? 'Check required fields and input limits. Your edits are still here.' : 'The local request failed. Your edits are still here. Check the backend and retry.')
+  code: string
+  constructor(status: number, detail = '', code = '') {
+    super(code === 'run_active' ? 'A run is in progress. Wait for it to finish, then save again. Your edits are still here.' : status === 409 ? 'Newer changes exist. Your edits are still here. Copy them before loading the latest saved version.' : status === 403 ? 'Local session expired or request denied. Your edits are still here. Retry to renew the session.' : status === 422 ? 'Check required fields and input limits. Your edits are still here.' : 'The local request failed. Your edits are still here. Check the backend and retry.')
     this.status = status
-    this.detail = detail
+    this.detail = code === 'run_active' ? '' : detail
+    this.code = code
   }
 }
 async function failure(response: Response): Promise<ApiError> {
   try {
     const data: unknown = await response.json()
     const message = record(data) && record(data.error) && typeof data.error.message === 'string' ? data.error.message : ''
-    return new ApiError(response.status, message.slice(0, 500))
+    const code = record(data) && record(data.error) && typeof data.error.code === 'string' ? data.error.code : ''
+    return new ApiError(response.status, message.slice(0, 500), code.slice(0, 64))
   } catch { return new ApiError(response.status) }
 }
 function record(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' }

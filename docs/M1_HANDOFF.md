@@ -136,13 +136,17 @@ The evidence view is still a modal dialog rather than the docked panel at wide s
 ## Known limitations affecting live use
 
 - Redirects to a different scheme or host are refused, including http→https.
-- A missing or unreadable `robots.txt` blocks that page (ADR-A13 fails closed), so some normal
-  sites will show as `blocked`.
+- `robots.txt` follows RFC 9309 (ADR-A13, clarified 2026-11-09): a disallow is honoured, a missing or
+  empty file allows the page, and an unreadable one skips the page as `robots_unavailable`. Failures
+  keep their real reason (`dns_failed`, `timeout`, `blocked` for a refusal), and DNS lookups get one
+  retry. Live runs read at most one page per website.
 - UTF-8 only. Near-duplicate detection is exact text hash only.
 - Author and date come only from page `<meta>` tags. Extraction accuracy is unmeasured.
 - Only the first validated address is tried. Interrupted runs are not resumed (M3).
 - Automatic conflict detection and semantic support assessment are M3.
-- Tavily's and Gemini's request shapes follow published APIs but are unverified live.
+- First live run (2026-11-09): Tavily and Gemini both worked. `gemini-3.8-flash`, `gemini-3.7-flash`
+  and `gemini-flash-latest` never answered on the owner's free key; `gemini-3.5-flash` answered in
+  seconds and is configured. Model calls now wait up to 150 s and are not retried on timeout.
 - A plan's model usage counts toward provider ledgers, not the later research run's budget.
 - Keys in Windows Credential Manager are readable by other software under your account.
 

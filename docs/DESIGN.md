@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | Document | `docs/DESIGN.md` |
-| Version | 1.0.0 — draft for owner review |
+| Version | 1.1.0 — palette changed by the owner on 2026-11-09 |
 | Owner | Iqra Nawaz |
 | Date | 2026-10-23 |
 | PRD baseline | `PRD.md` v1.1.0 |
 | Design direction | **Chart Room** (approved) |
-| Palette | **Deep Sea Abyss** (approved, unchanged) |
+| Palette | **Forest & Teal** (approved 2026-11-09; replaces Deep Sea Abyss) |
 | Status | `planned` — nothing in this document has been implemented or verified in code |
 
 > **How to read this document.** Requirement IDs (`FR-`, `NFR-`, `UX-`, `SEC-`, `ERR-`, `AC-`) come from `PRD.md` and are never redefined here. Every feature carries a milestone tag (M0–M4, V1, Future). A feature tagged for a later milestone **must not appear as available** in an earlier one (§2.5). Contrast ratios in §4 were computed on 2026-10-23 with the WCAG 2.x relative-luminance formula; they are design-time calculations and are **not** an accessibility-compliance claim (§13.10).
@@ -130,7 +130,7 @@ A failed Layer A check results in the citation being suppressed and the claim ma
 
 | Meaning | Color token | Hex | Icon (Lucide) | Text label |
 |---|---|---|---|---|
-| Supported (automated, M3) | Light Aqua | `#AEEEEE` | `circle-check` | Supported |
+| Supported (automated, M3) | Mint | `#9EEBD8` | `circle-check` | Supported |
 | Uncertain (automated, M3) | Warning/Amber | `#FFC857` | `circle-help` | Uncertain |
 | Contested (automated, M3) | Contested/Violet | `#C9A7FF` | `scale` | Contested |
 | Unsupported (automated, M3) | Danger/Coral | `#FF8A8A` | `circle-slash` | Unsupported |
@@ -138,7 +138,7 @@ A failed Layer A check results in the citation being suppressed and the claim ma
 | Check passed (Layer A) | Success | `#4ADE9F` | `shield-check` | Passed |
 | Check failed (Layer A) | Danger | `#FF8A8A` | `shield-alert` | Failed |
 
-**Light Aqua has two jobs and they must not be confused:** (1) it is the *Supported* color, always accompanied by the word "Supported"; (2) it is the signature accent for the Sounding Line, highlighted excerpts and focus rings, where it signals **linkage and attention, not a verdict**. A Sounding Line next to a claim means "this claim is traceable to these passages". It does not mean "this claim is correct". The first-use help popover (§10.9) states this.
+**Mint has two jobs and they must not be confused:** (1) it is the *Supported* color, always accompanied by the word "Supported"; (2) it is the signature accent for the Sounding Line, highlighted excerpts and focus rings, where it signals **linkage and attention, not a verdict**. A Sounding Line next to a claim means "this claim is traceable to these passages". It does not mean "this claim is correct". The first-use help popover (§10.9) states this.
 
 > Icon names are Lucide identifiers as of this writing. Frontend must confirm each exists in the pinned Lucide version and substitute the closest equivalent without changing meaning.
 
@@ -168,37 +168,39 @@ Rules:
 
 ## 3. Visual Identity and Design Tokens
 
-### 3.1 Brand palette — Deep Sea Abyss (mandatory, unchanged)
+### 3.1 Brand palette — Forest & Teal (mandatory)
+
+> **Change, 2026-11-09:** the owner replaced the original Deep Sea Abyss (navy and blue) palette with Forest & Teal. Roles, token structure and contrast rules are unchanged; color names and values changed, and §4 was recomputed from the new values.
 
 | Token | Name | Hex | Role |
 |---|---|---|---|
-| `--dt-deep-navy` | Deep Navy | `#001F3F` | Main application background |
-| `--dt-ocean-navy` | Ocean Navy | `#003366` | Sidebar, cards, panels, drawers |
-| `--dt-ocean-blue` | Ocean Blue | `#005B96` | Selected navigation, supporting surfaces |
-| `--dt-electric-blue` | Electric Blue | `#007BFF` | Interactive accents, progress indicators (non-text) |
-| `--dt-light-aqua` | Light Aqua | `#AEEEEE` | Evidence highlights, Sounding Line, focus ring, "Supported" |
+| `--dt-forest-black` | Forest Black | `#0F1A17` | Main application background |
+| `--dt-deep-forest` | Deep Forest | `#16261F` | Sidebar, cards, panels, drawers |
+| `--dt-pine` | Pine | `#1F3A30` | Selected navigation, supporting surfaces |
+| `--dt-teal` | Teal | `#2BB596` | Interactive accents, progress indicators (non-text) |
+| `--dt-mint` | Mint | `#9EEBD8` | Evidence highlights, Sounding Line, focus ring, "Supported" |
 
 ### 3.2 Approved supporting colors
 
 | Token | Hex | Role |
 |---|---|---|
-| `--dt-text-primary` | `#F2F6FA` | Primary text |
-| `--dt-text-secondary` | `#A9BBD0` | Secondary text |
-| `--dt-text-muted` | `#8FA6C0` | Muted text, timestamps, helper text |
-| `--dt-surface-sunken` | `#00152B` | Inputs, code/passages wells, deepest layer |
-| `--dt-surface-raised` | `#0A3D70` | Hover surfaces, popovers, menus |
-| `--dt-border-subtle` | `#1B4B7C` | Decorative dividers only |
-| `--dt-border-strong` | `#6F93BD` | Input boundaries, interactive component outlines |
-| `--dt-button-primary` | `#0066D9` | Primary button fill |
-| `--dt-button-primary-hover` | `#005BC4` | Primary button hover |
-| `--dt-button-primary-pressed` | `#0050AD` | Primary button pressed |
-| `--dt-link` | `#5AA9FF` | Text links |
+| `--dt-text-primary` | `#F1F6F3` | Primary text |
+| `--dt-text-secondary` | `#A9C2B8` | Secondary text |
+| `--dt-text-muted` | `#8FAA9F` | Muted text, timestamps, helper text |
+| `--dt-surface-sunken` | `#09110E` | Inputs, code/passages wells, deepest layer |
+| `--dt-surface-raised` | `#1C3029` | Hover surfaces, popovers, menus |
+| `--dt-border-subtle` | `#24423A` | Decorative dividers only |
+| `--dt-border-strong` | `#6F9E90` | Input boundaries, interactive component outlines |
+| `--dt-button-primary` | `#1E7F69` | Primary button fill |
+| `--dt-button-primary-hover` | `#1A705D` | Primary button hover |
+| `--dt-button-primary-pressed` | `#16614F` | Primary button pressed |
+| `--dt-link` | `#5ED6B8` | Text links |
 | `--dt-success` | `#4ADE9F` | Check passed, completed |
 | `--dt-warning` | `#FFC857` | Uncertain, caution banners |
 | `--dt-danger` | `#FF8A8A` | Failed, not established, destructive |
 | `--dt-contested` | `#C9A7FF` | Contested evidence |
 
-Primary text on the primary button is `#FFFFFF` (5.38:1; see §4). The button uses `#0066D9` rather than Electric Blue because white on `#007BFF` would not meet 4.5:1.
+Primary text on the primary button is `#FFFFFF` (5.38:1; see §4). The button uses `#1E7F69` rather than Teal because white on `#2BB596` would not meet 4.5:1.
 
 ### 3.3 Derived values (introduced by this document)
 
@@ -209,18 +211,18 @@ Derived values are computed from approved colors, introduce no new hue, and exis
 | `--dt-button-primary-text` | `#FFFFFF` | Pure white | Text on primary button |
 | `--dt-danger-hover` | `#FF7373` | Danger lightness shift | Destructive button hover |
 | `--dt-danger-pressed` | `#FF5C5C` | Danger lightness shift | Destructive button pressed |
-| `--dt-scrim` | `rgba(0, 21, 43, 0.72)` | Sunken at 72% | Modal/drawer backdrop |
-| `--dt-tint-aqua` | `#AEEEEE` at 14% | Status tint | Supported chip background |
+| `--dt-scrim` | `rgba(9, 17, 14, 0.72)` | Sunken at 72% | Modal/drawer backdrop |
+| `--dt-tint-mint` | `#9EEBD8` at 14% | Status tint | Supported chip background |
 | `--dt-tint-warning` | `#FFC857` at 14% | Status tint | Uncertain chip background |
 | `--dt-tint-contested` | `#C9A7FF` at 14% | Status tint | Contested chip background |
 | `--dt-tint-danger` | `#FF8A8A` at 14% | Status tint | Unsupported / error background |
-| `--dt-tint-electric` | `#007BFF` at 18% | Status tint | Running / Planning badge background |
+| `--dt-tint-teal` | `#2BB596` at 18% | Status tint | Running / Planning badge background |
 | `--dt-tint-success` | `#4ADE9F` at 14% | Status tint | Passed / completed background |
-| `--dt-highlight` | `#AEEEEE` at 22% | Passage highlight | Highlighted excerpt background |
-| `--dt-sounding-rest` | `#AEEEEE` at 35% | Sounding Line | Resting line |
-| `--dt-sounding-active` | `#AEEEEE` at 100% | Sounding Line | Active/hover/focus line |
+| `--dt-highlight` | `#9EEBD8` at 22% | Passage highlight | Highlighted excerpt background |
+| `--dt-sounding-rest` | `#9EEBD8` at 35% | Sounding Line | Resting line |
+| `--dt-sounding-active` | `#9EEBD8` at 100% | Sounding Line | Active/hover/focus line |
 
-Tints are specified as alpha over the surface they sit on, so the same token works over Deep Navy and Ocean Navy. Computed contrast for each is in §4.4.
+Tints are specified as alpha over the surface they sit on, so the same token works over Forest Black and Deep Forest. Computed contrast for each is in §4.4.
 
 ### 3.4 Semantic tokens
 
@@ -228,11 +230,11 @@ Components consume **semantic** tokens, never raw palette tokens. This keeps a l
 
 | Semantic token | Maps to |
 |---|---|
-| `--bg-app` | Deep Navy |
-| `--bg-surface` | Ocean Navy |
+| `--bg-app` | Forest Black |
+| `--bg-surface` | Deep Forest |
 | `--bg-sunken` | Surface Sunken |
 | `--bg-raised` | Surface Raised |
-| `--bg-selected` | Ocean Blue |
+| `--bg-selected` | Pine |
 | `--bg-scrim` | Scrim |
 | `--text-default` | Text Primary |
 | `--text-secondary` | Text Secondary |
@@ -241,35 +243,35 @@ Components consume **semantic** tokens, never raw palette tokens. This keeps a l
 | `--text-on-primary` | `#FFFFFF` |
 | `--border-decor` | Border Subtle |
 | `--border-control` | Border Strong |
-| `--accent-interactive` | Electric Blue |
-| `--accent-evidence` | Light Aqua |
-| `--focus-ring` | Light Aqua |
+| `--accent-interactive` | Teal |
+| `--accent-evidence` | Mint |
+| `--focus-ring` | Mint |
 | `--status-success / warning / danger / contested` | respective colors |
 
 ### 3.5 Surface hierarchy
 
 | Level | Token | Used for |
 |---|---|---|
-| L0 — Sunken | `--bg-sunken` `#00152B` | Text inputs, passage wells, code blocks, skeleton base |
-| L1 — App | `--bg-app` `#001F3F` | Page background, reading canvas |
-| L2 — Surface | `--bg-surface` `#003366` | Sidebar, cards, panels, drawer, modal |
-| L3 — Raised | `--bg-raised` `#0A3D70` | Hover state of L2 rows, menus, popovers, tooltips |
-| Selected | `--bg-selected` `#005B96` | Selected nav item, selected row (with indicator) |
+| L0 — Sunken | `--bg-sunken` `#09110E` | Text inputs, passage wells, code blocks, skeleton base |
+| L1 — App | `--bg-app` `#0F1A17` | Page background, reading canvas |
+| L2 — Surface | `--bg-surface` `#16261F` | Sidebar, cards, panels, drawer, modal |
+| L3 — Raised | `--bg-raised` `#1C3029` | Hover state of L2 rows, menus, popovers, tooltips |
+| Selected | `--bg-selected` `#1F3A30` | Selected nav item, selected row (with indicator) |
 
 Adjacent surface steps are low-contrast by design (1.15–1.76:1, §4.3). **Surfaces are therefore never the only boundary for an interactive control**; controls carry a Strong border (§4.3).
 
 ### 3.6 Signature element — the Sounding Line
 
-A 2 px vertical Light Aqua rule that physically links a claim, its citation chips and the evidence passage.
+A 2 px vertical Mint rule that physically links a claim, its citation chips and the evidence passage.
 
 | Property | Value |
 |---|---|
 | Width | 2 px, `border-radius: 1px` |
 | Position | Left gutter of a claim block (8 px gap to text); left edge of the highlighted passage in the Evidence Drawer |
-| Rest (claim has ≥ 1 valid citation) | `--dt-sounding-rest` (aqua 35%) |
-| Hover / focus-within on claim, or its chip is active | `--dt-sounding-active` (aqua 100%) |
-| Active claim (its drawer is open) | Aqua 100% on both the claim and the passage in the drawer, plus `--dt-highlight` background on the cited excerpt |
-| Claim with no valid citation | **No aqua line.** A 2 px **dashed** `--status-danger` line plus the "Not established" label |
+| Rest (claim has ≥ 1 valid citation) | `--dt-sounding-rest` (mint 35%) |
+| Hover / focus-within on claim, or its chip is active | `--dt-sounding-active` (mint 100%) |
+| Active claim (its drawer is open) | Mint 100% on both the claim and the passage in the drawer, plus `--dt-highlight` background on the cited excerpt |
+| Claim with no valid citation | **No mint line.** A 2 px **dashed** `--status-danger` line plus the "Not established" label |
 | Animation | None required. Optional 120 ms opacity transition on state change; none under reduced motion (§5.6) |
 | Forbidden | Glow, blur, gradient, pulse, travelling-dot animation, thickness over 2 px |
 
@@ -285,97 +287,97 @@ Ratios use the WCAG 2.x formula `(L1 + 0.05) / (L2 + 0.05)` with sRGB relative l
 
 ### 4.2 Text on surfaces
 
-| Foreground | Deep Navy `#001F3F` | Ocean Navy `#003366` | Ocean Blue `#005B96` | Sunken `#00152B` | Raised `#0A3D70` |
+| Foreground | Forest Black `#0F1A17` | Deep Forest `#16261F` | Pine `#1F3A30` | Sunken `#09110E` | Raised `#1C3029` |
 |---|---|---|---|---|---|
-| Text Primary `#F2F6FA` | 15.25 ✅ | 11.61 ✅ | 6.58 ✅ | 16.93 ✅ | 10.10 ✅ |
-| Text Secondary `#A9BBD0` | 8.44 ✅ | 6.43 ✅ | **3.65 ❌** | 9.37 ✅ | 5.59 ✅ |
-| Text Muted `#8FA6C0` | 6.61 ✅ | 5.03 ✅ | **2.85 ❌** | 7.34 ✅ | **4.38 ❌** |
-| Link `#5AA9FF` | 6.75 ✅ | 5.14 ✅ | **2.91 ❌** | 7.49 ✅ | **4.47 ❌** |
-| Light Aqua `#AEEEEE` | 12.83 ✅ | 9.77 ✅ | 5.54 ✅ | 14.24 ✅ | 8.50 ✅ |
-| Success `#4ADE9F` | 9.65 ✅ | 7.35 ✅ | **4.17 ❌** | 10.72 ✅ | 6.39 ✅ |
-| Warning `#FFC857` | 10.77 ✅ | 8.20 ✅ | 4.65 ✅ | 11.95 ✅ | 7.13 ✅ |
-| Danger `#FF8A8A` | 7.30 ✅ | 5.56 ✅ | **3.15 ❌** | 8.10 ✅ | 4.83 ✅ |
-| Contested `#C9A7FF` | 8.25 ✅ | 6.28 ✅ | **3.56 ❌** | 9.15 ✅ | 5.46 ✅ |
-| Electric Blue `#007BFF` (as text) | 4.16 ❌ | 3.17 ❌ | 1.80 ❌ | 4.62 ✅ | 2.76 ❌ |
+| Text Primary `#F1F6F3` | 16.28 ✅ | 14.44 ✅ | 11.26 ✅ | 17.50 ✅ | 12.78 ✅ |
+| Text Secondary `#A9C2B8` | 9.40 ✅ | 8.34 ✅ | 6.50 ✅ | 10.10 ✅ | 7.38 ✅ |
+| Text Muted `#8FAA9F` | 7.13 ✅ | 6.32 ✅ | 4.93 ✅ | 7.67 ✅ | 5.60 ✅ |
+| Link `#5ED6B8` | 9.98 ✅ | 8.85 ✅ | 6.91 ✅ | 10.73 ✅ | 7.84 ✅ |
+| Mint `#9EEBD8` | 12.99 ✅ | 11.52 ✅ | 8.98 ✅ | 13.96 ✅ | 10.19 ✅ |
+| Success `#4ADE9F` | 10.37 ✅ | 9.20 ✅ | 7.17 ✅ | 11.15 ✅ | 8.14 ✅ |
+| Warning `#FFC857` | 11.56 ✅ | 10.26 ✅ | 8.00 ✅ | 12.43 ✅ | 9.08 ✅ |
+| Danger `#FF8A8A` | 7.84 ✅ | 6.95 ✅ | 5.42 ✅ | 8.43 ✅ | 6.15 ✅ |
+| Contested `#C9A7FF` | 8.86 ✅ | 7.85 ✅ | 6.13 ✅ | 9.52 ✅ | 6.95 ✅ |
+| Teal (as text) `#2BB596` | 6.91 ✅ | 6.12 ✅ | 4.78 ✅ | 7.42 ✅ | 5.42 ✅ |
+
+Every text color meets 4.5:1 on every surface, including Pine (selected).
 
 ### 4.3 Mandatory usage rules derived from §4.2
 
 | # | Rule |
 |---|---|
-| C1 | **Selected navigation (Ocean Blue)** contains Text Primary (6.58) and white icons only. No Secondary, Muted, Link, Success, Danger or Contested text may sit on Ocean Blue. |
-| C2 | **Muted text and Link text are never placed on Raised** (4.38 and 4.47 fall just short). On hovered rows/menus (Raised) secondary text uses Text Secondary (5.59) and links use Light Aqua (8.50) or underline in Text Primary. |
-| C3 | **Electric Blue is never used for text.** It is used for non-text indicators: progress fill, active phase marker, switch "on" track, selected-row marker. It meets 3:1 on Deep Navy (4.16), Sunken (4.62) and Ocean Navy (3.17) but **not** on Raised (2.76) or Ocean Blue (1.80); do not place it there. |
-| C4 | **Border Subtle (`#1B4B7C`) is decorative only** (1.41:1 on Ocean Navy, 1.85:1 on Deep Navy). It may draw dividers and card outlines but never the boundary of an input, checkbox, radio, switch, select or secondary button. |
-| C5 | **Interactive control boundaries use Border Strong (`#6F93BD`):** 3.95 on Ocean Navy, 5.19 on Deep Navy, 5.76 on Sunken, 3.44 on Raised. All ≥ 3:1. |
-| C6 | **Surface steps are not boundaries.** Deep→Ocean Navy is 1.31:1; Ocean Navy→Raised is 1.15:1; Ocean Navy→Ocean Blue is 1.76:1. Never rely on surface color alone to delimit an interactive element. |
+| C1 | **Selected navigation (Pine)** may hold any text color: the lowest is Text Muted at 4.93. Text Primary (11.26) remains preferred for selected labels. |
+| C2 | **Hovered rows and menus (Raised)** may use Secondary (7.38), Muted (5.60) and Link (7.84) text. |
+| C3 | **Teal is reserved for non-text indicators** by convention: progress fill, active phase marker, switch "on" track, selected-row marker. It meets 3:1 on Forest Black (6.91), Sunken (7.42), Deep Forest (6.12) and Raised (5.42). Links use the Link color. |
+| C4 | **Border Subtle (`#24423A`) is decorative only** (1.44:1 on Deep Forest, 1.62:1 on Forest Black). It may draw dividers and card outlines but never the boundary of an input, checkbox, radio, switch, select or secondary button. |
+| C5 | **Interactive control boundaries use Border Strong (`#6F9E90`):** 5.24 on Deep Forest, 5.90 on Forest Black, 6.35 on Sunken, 4.63 on Raised. All ≥ 3:1. |
+| C6 | **Surface steps are not boundaries.** Forest Black→Deep Forest is 1.13:1; Deep Forest→Raised is 1.13:1; Deep Forest→Pine is 1.28:1. Never rely on surface color alone to delimit an interactive element. |
 | C7 | **Text inside tinted chips, banners and highlights uses Text Primary or the status color itself** (see §4.4). Muted text is never placed on a tint. Secondary text on tints is allowed only where §4.4 shows ≥ 4.5. |
-| C8 | Status colors on Ocean Blue are forbidden (see C1). Status chips sit on Deep Navy, Ocean Navy or Sunken only. |
+| C8 | Status chips sit on Forest Black, Deep Forest or Sunken. Status colors on Pine pass contrast (§4.2) but are avoided so a selected row is not mistaken for a status. |
 
 ### 4.4 Tints and highlights
 
-Tints are the status color at 14% over the surface (highlight: aqua at 22%).
+Tints are the status color at 14% over the surface (highlight: mint at 22%).
 
-| Tint over Ocean Navy | Resulting bg | Status-color text | Primary text | Secondary text |
+| Tint over Deep Forest | Resulting bg | Status-color text | Primary text | Secondary text |
 |---|---|---|---|---|
-| Aqua (Supported) | `#184D79` | 6.84 ✅ | 8.14 ✅ | 4.50 (borderline — do not use) |
-| Warning (Uncertain) | `#244864` | 6.24 ✅ | 8.85 ✅ | 4.90 ✅ |
-| Contested | `#1C437B` | 4.89 ✅ | 9.04 ✅ | 5.01 ✅ |
-| Danger (Unsupported / error) | `#243F6B` | 4.63 ✅ | 9.68 ✅ | 5.36 ✅ |
-| Success (Passed) | `#0A4B6E` | 5.45 ✅ | 8.62 ✅ | — |
-| Highlight (aqua 22%) | `#265C84` | — | 6.56 ✅ | — |
-| Electric Blue 18% (Running / Planning) | `#004082` | (marker is non-text) | 9.41 ✅ | — |
+| Mint (Supported) | `#294239` | 7.93 ✅ | 9.94 ✅ | 5.74 ✅ |
+| Warning (Uncertain) | `#373D27` | 7.34 ✅ | 10.34 ✅ | 5.97 ✅ |
+| Contested | `#2F383E` | 5.95 ✅ | 10.94 ✅ | 6.32 ✅ |
+| Danger (Unsupported / error) | `#37342E` | 5.47 ✅ | 11.35 ✅ | 6.55 ✅ |
+| Success (Passed) | `#1D4031` | 6.69 ✅ | 10.50 ✅ | 6.06 ✅ |
+| Highlight (mint 22%) | `#345148` | — | 7.95 ✅ | 4.59 (do not use) |
+| Teal 18% (Running / Planning) | `#1A4034` | (marker is non-text) | 10.52 ✅ | — |
 
-| Tint over Deep Navy | Resulting bg | Status-color text | Primary text |
+| Tint over Forest Black | Resulting bg | Status-color text | Primary text |
 |---|---|---|---|
-| Aqua | `#183C58` | 8.91 ✅ | 10.59 ✅ |
-| Warning | `#243742` | 8.03 ✅ | 11.37 ✅ |
-| Contested | `#1C325A` | 6.32 ✅ | 11.70 ✅ |
-| Danger | `#242E4A` | 5.91 ✅ | 12.36 ✅ |
-| Success | `#0A3A4C` | 7.11 ✅ | 11.23 ✅ |
-| Highlight over Sunken (aqua 18%) | `#1F3C4E` | — | 10.66 ✅ |
-| Electric Blue 18% | `#003062` | (marker is non-text) | 12.09 ✅ |
+| Mint | `#233732` | 9.21 ✅ | 11.55 ✅ |
+| Warning | `#313220` | 8.49 ✅ | 11.95 ✅ |
+| Contested | `#292E37` | 6.79 ✅ | 12.48 ✅ |
+| Danger | `#312A27` | 6.21 ✅ | 12.89 ✅ |
+| Success | `#17352A` | 7.75 ✅ | 12.17 ✅ |
+| Highlight over Sunken (mint 18%) | `#243832` | — | 11.39 ✅ |
+| Teal 18% | `#14362E` | (marker is non-text) | 12.03 ✅ |
 
-- **Highlighted excerpt text is Text Primary**, never dark text: Deep Navy text on the highlight is only 2.32:1.
-- Muted on the aqua tint is 3.53 and Muted on the danger tint is 4.20: both fail, hence rule C7.
+- **Highlighted excerpt text is Text Primary**, never dark text: Forest Black text on the highlight is only 2.05:1.
+- Muted on the mint tint is 4.36 and on the highlight 3.48: both fail, hence rule C7.
 
 ### 4.5 Buttons
 
 | Button | Fill | Text | Ratio | Notes |
 |---|---|---|---|---|
-| Primary default | `#0066D9` | `#FFFFFF` | 5.38 ✅ | |
-| Primary hover | `#005BC4` | `#FFFFFF` | 6.38 ✅ | |
-| Primary pressed | `#0050AD` | `#FFFFFF` | 7.63 ✅ | |
-| Primary (alt text) | `#0066D9` | `#F2F6FA` | 4.96 ✅ | Acceptable but white is specified |
-| Destructive default | `#FF8A8A` | `#001F3F` | 7.30 ✅ | Dark text on coral |
-| Destructive hover | `#FF7373` | `#001F3F` | 6.27 ✅ | Derived |
-| Destructive pressed | `#FF5C5C` | `#001F3F` | 5.47 ✅ | Derived; white on `#FF5C5C` would be 3.03 ❌ |
-| Secondary | transparent | `#F2F6FA` | ≥ 10 ✅ | Border Strong boundary |
-| Ghost / link-style | transparent | `#5AA9FF` | 5.14 on Ocean Navy ✅ | Underline on hover |
+| Primary default | `#1E7F69` | `#FFFFFF` | 4.89 ✅ | |
+| Primary hover | `#1A705D` | `#FFFFFF` | 5.97 ✅ | |
+| Primary pressed | `#16614F` | `#FFFFFF` | 7.35 ✅ | |
+| Primary (alt text) | `#1E7F69` | `#F1F6F3` | **4.47 ❌** | Not allowed: pure white is required |
+| Destructive default | `#FF8A8A` | `#0F1A17` | 7.84 ✅ | Dark text on coral |
+| Destructive hover | `#FF7373` | `#0F1A17` | 6.74 ✅ | Derived |
+| Destructive pressed | `#FF5C5C` | `#0F1A17` | 5.88 ✅ | Derived; white on `#FF5C5C` would be 3.03 ❌ |
+| Secondary | transparent | `#F1F6F3` | ≥ 10 ✅ | Border Strong boundary |
+| Ghost / link-style | transparent | `#5ED6B8` | 8.85 on Deep Forest ✅ | Underline on hover |
 
-Primary button fill vs Ocean Navy is 2.34:1 and vs Deep Navy 3.08:1. A filled button with a text label is identifiable without relying on its boundary (WCAG 1.4.11 does not require a boundary where the label identifies the control), but the Primary button carries a 1 px `#F2F6FA` at 24% inner border to reinforce the edge on Ocean Navy. This inner border is cosmetic and not relied on for compliance.
+Primary button fill vs Deep Forest is 3.23:1 and vs Forest Black 3.64:1. A filled button with a text label is identifiable without relying on its boundary (WCAG 1.4.11 does not require a boundary where the label identifies the control).
 
 ### 4.6 Focus indicator
 
 | Property | Value |
 |---|---|
-| Style | `outline: 2px solid #AEEEEE; outline-offset: 2px` |
-| Contrast vs adjacent surfaces | Deep Navy 12.83, Ocean Navy 9.77, Sunken 14.24, Raised 8.50, Ocean Blue 5.54 — all ≥ 3:1 |
-| Placement | The 2 px offset gap means the ring is measured against the **surrounding surface**, not the control's own fill. This matters for coral destructive buttons (ring on coral would be 1.76:1) and Primary buttons (4.17). Never use an inset-only ring on those controls. |
-| Clipped containers | Where `overflow: hidden` would clip an outer ring, use `outline-offset: -2px` and add a 1 px Deep Navy inner stroke; never on destructive buttons (restructure the container instead). |
+| Style | `outline: 2px solid #9EEBD8; outline-offset: 2px` |
+| Contrast vs adjacent surfaces | Forest Black 12.99, Deep Forest 11.52, Pine 8.98, Sunken 13.96, Raised 10.19 — all ≥ 3:1 |
+| Placement | The 2 px offset gap means the ring is measured against the **surrounding surface**, not the control's own fill. This matters for coral destructive buttons (ring on coral would be 1.66:1) and Primary buttons (3.57). Never place the ring directly on a destructive fill. |
+| Clipped containers | Where `overflow: hidden` would clip an outer ring, use `outline-offset: -2px` and add a 1 px Forest Black inner stroke; never on destructive buttons (restructure the container instead). |
 | Forbidden | `outline: none` without an equal replacement; focus visible only on hover; rings lighter than 3:1 against surroundings |
 
 ### 4.7 Forbidden pairings (quick reference)
 
 | Forbidden | Reason | Use instead |
 |---|---|---|
-| Muted / Link on Raised | 4.38 / 4.47 | Secondary / Light Aqua |
-| Secondary, Muted, Link, status text on Ocean Blue | 3.65 / 2.85 / 2.91 / ≤ 4.17 | Text Primary |
-| Electric Blue as text | 4.16 / 3.17 | Link `#5AA9FF` |
-| Border Subtle as control boundary | 1.41 | Border Strong |
-| Dark text on highlight | 2.32 | Text Primary |
-| White text on destructive coral | < 3 | Deep Navy text |
-| Aqua-only meaning (no label) | NFR-A4 | Aqua + text + icon |
-
+| Text Primary on the Primary button | 4.47 | Pure white |
+| Muted text on tints or the highlight | 4.36 / 3.48 | Text Primary |
+| Border Subtle as control boundary | 1.44 | Border Strong |
+| Dark text on highlight | 2.05 | Text Primary |
+| White text on destructive coral | < 3 | Forest Black text |
+| Mint-only meaning (no label) | NFR-A4 | Mint + text + icon |
 ---
 
 ## 5. Typography, Spacing, Radius, Elevation and Motion
@@ -493,9 +495,9 @@ Elevation is communicated by **surface color and border**, not shadow.
 
 | Layer | Treatment |
 |---|---|
-| Page, cards, sidebar | No shadow. Card: Ocean Navy fill, `1px solid --border-decor`. |
+| Page, cards, sidebar | No shadow. Card: Deep Forest fill, `1px solid --border-decor`. |
 | Hover / menu / popover / tooltip | Raised fill, 1 px Border Subtle, shadow `0 4px 12px rgba(0, 10, 25, 0.40)` |
-| Overlay drawer / modal | Ocean Navy fill, 1 px Border Strong, shadow `0 12px 32px rgba(0, 10, 25, 0.55)`, scrim behind |
+| Overlay drawer / modal | Deep Forest fill, 1 px Border Strong, shadow `0 12px 32px rgba(0, 10, 25, 0.55)`, scrim behind |
 | Docked drawer | No shadow; 1 px Border Subtle left border |
 | Sticky header | No shadow; 1 px Border Subtle bottom border |
 
@@ -538,8 +540,8 @@ A reduced-motion user must lose **no information**; every animated state has a t
 ┌────────────┬──────────────────────────────────────────────────────────┐
 │            │  Contextual header (breadcrumb · title · status · actions) │
 │  Sidebar   ├──────────────────────────────────────────────────────────┤
-│ (Ocean     │  Investigation tabs (Workspace · Sources · [Compare] · Report)
-│  Navy)     ├───────────────────────────────┬──────────────┬───────────┤
+│ (Deep      │  Investigation tabs (Workspace · Sources · [Compare] · Report)
+│  Forest)   ├───────────────────────────────┬──────────────┬───────────┤
 │            │  Primary content workspace    │ Secondary    │ Evidence  │
 │ Dashboard  │  (reading column ≤ 720 px)    │ panel (opt.) │ panel     │
 │ Documents* │                               │ 320 px       │ (docked)  │
@@ -550,10 +552,10 @@ A reduced-motion user must lose **no information**; every animated state has a t
 
 | Region | Specification |
 |---|---|
-| **Sidebar** | Ocean Navy surface. Wordmark/tagline "Research you can trace." at top (tagline hidden in rail). Global navigation list. Collapse toggle at bottom. Collapsed state persisted locally. Selected item: Ocean Blue fill, Text Primary label, 3 px Light Aqua left indicator, `aria-current="page"`. Hover: Raised fill. |
+| **Sidebar** | Deep Forest surface. Wordmark/tagline "Research you can trace." at top (tagline hidden in rail). Global navigation list. Collapse toggle at bottom. Collapsed state persisted locally. Selected item: Pine fill, Text Primary label, 3 px Mint left indicator, `aria-current="page"`. Hover: Raised fill. |
 | **Contextual header** | On global screens: page title + primary action. On investigation screens: breadcrumb (`Dashboard › Investigation title`), title (truncated with tooltip), status badge, run actions (Cancel while running). Sticky. |
-| **Investigation tabs** | Rendered as a `<nav>` of links (see §7.3) directly below the header; sticky beneath it. Selected tab has a 2 px Light Aqua underline plus Text Primary label; unselected use Text Secondary. |
-| **Primary content workspace** | Deep Navy canvas. The answer or report sits in a reading column capped at 720 px, left-aligned with a 24 px gutter (centered only on wide viewports ≥ 1600 px). |
+| **Investigation tabs** | Rendered as a `<nav>` of links (see §7.3) directly below the header; sticky beneath it. Selected tab has a 2 px Mint underline plus Text Primary label; unselected use Text Secondary. |
+| **Primary content workspace** | Forest Black canvas. The answer or report sits in a reading column capped at 720 px, left-aligned with a 24 px gutter (centered only on wide viewports ≥ 1600 px). |
 | **Secondary information panel** | Optional; holds Plan, Sources, Activity, Budget (Radix Tabs). Docked on the right when space allows, an inline accordion otherwise (§6.3). |
 | **Evidence drawer** | Opened by citation chips. Docked panel on wide desktop, overlay drawer on tablet and narrow desktop, full-height sheet on mobile (§6.3, §10). |
 | **Toast region** | Bottom-right (desktop) / bottom-center (mobile), above content, `role="status"`; max 3 stacked. |
@@ -585,7 +587,7 @@ Width arithmetic (to prove the design fits): at 1280 px with a 240 px sidebar an
 
 ### 6.5 Mobile navigation dialog
 
-Menu button (44 × 44 px) in a 56 px top bar opens a Radix Dialog from the left: Ocean Navy panel, 85% width, max 320 px; contains the same navigation list, a "Close" button, focus trapped, `Esc` closes, focus returns to the menu button, background inert. Route change closes the dialog.
+Menu button (44 × 44 px) in a 56 px top bar opens a Radix Dialog from the left: Deep Forest panel, 85% width, max 320 px; contains the same navigation list, a "Close" button, focus trapped, `Esc` closes, focus returns to the menu button, background inert. Route change closes the dialog.
 
 ---
 
@@ -652,16 +654,16 @@ Badge = icon + text + tinted background (§4.4), 12 px caption, 4 px radius. Tex
 | Status (PRD §11.2) | Badge text | Icon | Color | Available in |
 |---|---|---|---|---|
 | Draft | Draft | `file-pen` | Secondary text / no tint, Border Strong outline | M1 |
-| Planning | Planning | `loader` (spins; static under reduced motion) | Electric Blue marker, Primary text | M1 |
+| Planning | Planning | `loader` (spins; static under reduced motion) | Teal marker, Primary text | M1 |
 | Awaiting approval | Ready to start (M1) / Awaiting approval (when FR-02b approval mode ships) | `hourglass` | Warning | M1 |
-| Running | Running | `loader` | Electric Blue marker, Primary text | M1 |
+| Running | Running | `loader` | Teal marker, Primary text | M1 |
 | Completed | Completed | `circle-check` | Success | M1 |
 | Paused | Paused | `circle-pause` | Warning | See §9.6 |
 | Interrupted | Interrupted | `unplug` | Warning | M1 (state display) |
 | Failed | Failed | `circle-x` | Danger | M1 |
 | Cancelled | Cancelled | `ban` | Secondary text, Border Strong outline | M1 |
 | Budget reached | Budget reached | `gauge` | Warning | M1 |
-| Archived | Archived | `archive` | Muted text (on Deep Navy/Ocean Navy only) | M1 |
+| Archived | Archived | `archive` | Muted text (on Forest Black/Deep Forest only) | M1 |
 
 "Completed" means normal successful completion only; **no other status may use the word "Done", "Finished" or "Complete"** (FR-11.3, PRD §11.2). The Awaiting approval label in M1 reads "Ready to start" because M1 uses explicit Start confirmation (FR-02b.2); this label choice is flagged in §19 (DQ-04).
 
@@ -742,7 +744,7 @@ Badge = icon + text + tinted background (§4.4), 12 px caption, 4 px radius. Tex
 | **Route / milestone** | `/new` · M1 |
 | **PRD IDs** | FR-01.1, FR-02.2, FR-11.1, FR-11.5, SEC-03, UX-08, UX-09, ERR-03 |
 
-**Layout:** single centered form card (max 720 px) on Deep Navy; page title "New investigation".
+**Layout:** single centered form card (max 720 px) on Forest Black; page title "New investigation".
 
 **Fields**
 
@@ -891,7 +893,7 @@ The most important screen. Full interaction model in §9; this section is the sc
 3. **Passage** (Sounding Line at its left, `--dt-highlight` behind the cited excerpt, Source Serif `read-passage`): the stored passage with surrounding context where the app stores it; the cited excerpt highlighted. If the passage is long, the area scrolls internally and auto-scrolls the highlight into view (instant under reduced motion).
 4. **Retrieval details:** "Retrieved {date time}" (`<time>`), extraction version (FR-W4), ingestion version (FR-05.3), and for PDFs the extraction-quality badge.
 5. **Automatic checks** (Layer A): three rows, each icon + text + status: *Passage found in saved sources*, *Belongs to this investigation*, *Quotation matches saved text* (or "No quotation presented" when the claim paraphrases). Section note: "These checks confirm the reference and wording. They don't confirm the claim is true."
-6. **Automated assessment** (Layer B, **M3 only**): kicker "AUTOMATED ASSESSMENT"; assessment label chip (icon + text); sentence "An AI model judged this. It may be wrong."; **Model** (`mono-sm`), **Method** (name/version), assessed-at timestamp; link "How to read this". **In M1–M2 this section is replaced** by a single muted note: "Semantic assessment isn't performed in this version, so a valid citation here doesn't show that the source supports the claim." (Muted note on Ocean Navy = 5.03 ✅.)
+6. **Automated assessment** (Layer B, **M3 only**): kicker "AUTOMATED ASSESSMENT"; assessment label chip (icon + text); sentence "An AI model judged this. It may be wrong."; **Model** (`mono-sm`), **Method** (name/version), assessed-at timestamp; link "How to read this". **In M1–M2 this section is replaced** by a single muted note: "Semantic assessment isn't performed in this version, so a valid citation here doesn't show that the source supports the claim." (Muted note on Deep Forest = 5.03 ✅.)
 7. **Cited by:** the claim text (truncated, expandable) and any other claims citing this passage; each is a button that scrolls to and highlights that claim in the page behind (overlay: closes drawer first).
 8. **User review (M3, Should):** if the user overrode a stance, show original label, user label, and when.
 
@@ -1047,7 +1049,7 @@ Radix AlertDialog; `role="alertdialog"`; title names the object ("Delete 'Climat
 | **Route / milestone** | `/setup` · M1 (required for the first live run); reopenable from Settings |
 | **PRD IDs** | UX-08, SEC-01, SEC-03, SEC-06, SEC-08, ERR-03, FR-11.1 |
 
-**Layout:** full-page, centered 640 px card, Deep Navy background; an ordered stepper (“Step 2 of 5: What leaves your computer”) — text first, dots second.
+**Layout:** full-page, centered 640 px card, Forest Black background; an ordered stepper (“Step 2 of 5: What leaves your computer”) — text first, dots second.
 
 | Step | Content |
 |---|---|
@@ -1091,13 +1093,13 @@ Five user-facing phases summarize the PRD's ten pipeline stages (PRD §11.1).
 | State | Marker | Text | Color |
 |---|---|---|---|
 | Completed | `circle-check` filled | "Done" is **not** used; use "Completed" | Success |
-| Active | 12 px ring/dot with Electric Blue; `loader` spinner if an operation is in flight | "In progress" | Electric Blue (non-text), label Text Primary |
-| Pending | Hollow circle, Border Strong | "Pending" | Muted text on Deep Navy/Ocean Navy |
+| Active | 12 px ring/dot with Teal; `loader` spinner if an operation is in flight | "In progress" | Teal (non-text), label Text Primary |
+| Pending | Hollow circle, Border Strong | "Pending" | Muted text on Forest Black/Deep Forest |
 | Failed | `circle-x` | "Failed" | Danger |
 | Stopped (Paused/Interrupted/Cancelled/Budget reached) | `circle-pause` / `unplug` / `ban` / `gauge` on the phase where work stopped | "Paused" / "Interrupted" / "Cancelled" / "Budget reached" | Warning (Cancelled: Secondary) |
 | Skipped/not reached after a stop | Hollow circle, dimmed | "Not reached" | Muted |
 
-**Layout:** horizontal stepper ≥ 768 px (five equal columns, connecting 2 px lines in Border Subtle; completed segments in Electric Blue) with the phase name under the marker; **compact** below 768 px: a single row "Phase 3 of 5 · Read — In progress" with a five-segment bar (each segment min 24 px wide with text alternative); tapping/activating the row expands a vertical list of all five phases. The connecting lines are decorative; state is in the text.
+**Layout:** horizontal stepper ≥ 768 px (five equal columns, connecting 2 px lines in Border Subtle; completed segments in Teal) with the phase name under the marker; **compact** below 768 px: a single row "Phase 3 of 5 · Read — In progress" with a five-segment bar (each segment min 24 px wide with text alternative); tapping/activating the row expands a vertical list of all five phases. The connecting lines are decorative; state is in the text.
 
 **Semantics:** `<ol aria-label="Research progress">`; each `<li>` includes visually-hidden state text; the active phase has `aria-current="step"`. It is **not** a progressbar and not an ARIA tablist.
 
@@ -1113,8 +1115,8 @@ The answer is rendered in Source Serif as **claim blocks**: one to three sentenc
 
 | Block type | Appearance | Required text/icon |
 |---|---|---|
-| **Cited claim** | Resting aqua Sounding Line; citation chips after the sentence | Chips (number + source hint) |
-| **Cited claim, active** | Line 100%, subtle `--dt-tint-aqua` at 6% background while its drawer is open | — |
+| **Cited claim** | Resting mint Sounding Line; citation chips after the sentence | Chips (number + source hint) |
+| **Cited claim, active** | Line 100%, subtle `--dt-tint-mint` at 6% background while its drawer is open | — |
 | **Not established** (FR-06.1, FR-06.5, ERR-07, ERR-11) | **Dashed** danger line, `circle-dashed` icon and the label **"Not established"** at the start of the block, in danger-tint chip; a following line "What would help: {additional evidence needed}" | Always text + icon + dashed line |
 | **Citation removed** (ERR-11) | Same as Not established with note "A reference for this claim couldn't be confirmed and was removed." | |
 | **Quote** | Quotation marks + `read-quote` italic, chip directly after | Only shown when quote check passed (FR-06.3) |
@@ -1133,7 +1135,7 @@ Every factual claim carries ≥ 1 valid citation chip **or** the Not established
 
 ### 9.5 Budget and usage
 
-**Summary strip (Layer 1):** five compact meters in a row (wrapping on mobile): Steps `x / 25`, Searches `x / 20`, Pages `x / 15`, Tokens `≈ x / 400,000`, Time `mm:ss / 20:00`. Each meter: label, value (`mono-sm`, tabular), 4 px bar (Electric Blue fill on Sunken track; track and fill are decorative because the numbers carry the information). Tokens and money are prefixed "≈" and labeled "estimate" (FR-11.2). Reaching 100% turns the label to Warning text + `gauge` icon and the word "limit reached". Cost is shown **only** when trustworthy pricing is configured (FR-11.5); otherwise the Budget tab says "Cost estimate unavailable".
+**Summary strip (Layer 1):** five compact meters in a row (wrapping on mobile): Steps `x / 25`, Searches `x / 20`, Pages `x / 15`, Tokens `≈ x / 400,000`, Time `mm:ss / 20:00`. Each meter: label, value (`mono-sm`, tabular), 4 px bar (Teal fill on Sunken track; track and fill are decorative because the numbers carry the information). Tokens and money are prefixed "≈" and labeled "estimate" (FR-11.2). Reaching 100% turns the label to Warning text + `gauge` icon and the word "limit reached". Cost is shown **only** when trustworthy pricing is configured (FR-11.5); otherwise the Budget tab says "Cost estimate unavailable".
 
 **Budget tab (Layer 2):** same five meters with larger labels, per-provider usage table (calls, estimated tokens, estimated cost where known), the configured limits (read-only during a run), and a text explanation "Limits are ceilings, not targets."
 
@@ -1173,7 +1175,7 @@ Rules for this matrix:
 |---|---|
 | Clicking a citation chip | Opens/updates the Evidence Drawer (§10) |
 | Clicking the same chip again | Closes the drawer, returns focus to the chip |
-| Hovering/focusing a chip | Tooltip: "{Source title} · {locator}" (Raised surface, 8.50 aqua / 10.10 primary text); tooltip text is never the only access to information |
+| Hovering/focusing a chip | Tooltip: "{Source title} · {locator}" (Raised surface, 8.50 mint / 10.10 primary text); tooltip text is never the only access to information |
 | Hover/focus a claim block | Sounding Line goes to 100% |
 | Scroll position | Never auto-scrolled by the app during a run unless the user activates "Jump to latest"; new content appends below the reading position without shifting visible text |
 | New sources arrive | The Sources tab count updates; no toast |
@@ -1200,7 +1202,7 @@ Rules for this matrix:
 
 ### 10.1 Citation chip anatomy
 
-`[ 3 ]` or `[ 3 · p.12 ]` — IBM Plex Mono `mono-xs`, 4 px radius, **min 28 × 24 px** hit area (24 px floor, WCAG 2.5.8) with 4 px spacing between chips, Raised fill, 1 px Border Strong, Text Primary label. M3 adds a 12 px assessment icon at the right edge (icon + label are in the accessible name). **Chips are neutral, not aqua**: aqua is reserved for Sounding Line/highlight/focus/"Supported" so that merely having a citation is never styled like support.
+`[ 3 ]` or `[ 3 · p.12 ]` — IBM Plex Mono `mono-xs`, 4 px radius, **min 28 × 24 px** hit area (24 px floor, WCAG 2.5.8) with 4 px spacing between chips, Raised fill, 1 px Border Strong, Text Primary label. M3 adds a 12 px assessment icon at the right edge (icon + label are in the accessible name). **Chips are neutral, not mint**: mint is reserved for Sounding Line/highlight/focus/"Supported" so that merely having a citation is never styled like support.
 
 Accessible name: "Citation 3: {Source title}, page 12. Opens evidence panel." (`aria-haspopup="dialog"` for overlay modes; `aria-expanded` reflects open state; `aria-controls` points to the drawer.) PDF page references use the physical page index and note the printed label when available (FR-D3).
 
@@ -1237,7 +1239,7 @@ The same Evidence Panel component renders in all three modes (§11.17); only its
 
 ### 10.5 Highlighting
 
-The cited excerpt is highlighted within its stored passage with `--dt-highlight` (aqua 22%) and the Sounding Line; text stays Text Primary (6.56:1 on Ocean Navy). If the exact offset cannot be located (for example extraction version changed), show the passage without highlight and a note "The exact excerpt couldn't be located. The full passage is shown." (never a guessed highlight). For PDFs, highlight is within the page's stored text; rendering the original PDF page image is out of scope (§20).
+The cited excerpt is highlighted within its stored passage with `--dt-highlight` (mint 22%) and the Sounding Line; text stays Text Primary (6.56:1 on Deep Forest). If the exact offset cannot be located (for example extraction version changed), show the passage without highlight and a note "The exact excerpt couldn't be located. The full passage is shown." (never a guessed highlight). For PDFs, highlight is within the page's stored text; rendering the original PDF page image is out of scope (§20).
 
 ### 10.6 Focus, announcements, keyboard
 
@@ -1265,7 +1267,7 @@ External URLs (source pages, publisher pages) are always a visible, labeled link
 ### 10.9 "How to read evidence" help
 
 A help popover (button "How to read this" near the answer header; Radix Popover, also reachable from the drawer) explains in five lines:
-1. The aqua line links a claim to the passages it cites. It shows traceability, not truth.
+1. The mint line links a claim to the passages it cites. It shows traceability, not truth.
 2. Automatic checks confirm the reference and wording match what was saved.
 3. Automated assessments (from M3) are an AI's judgment and may be wrong.
 4. "Not established" means DeepTrace couldn't tie the claim to a saved passage.
@@ -1295,17 +1297,17 @@ Naming: PascalCase component names are proposals; folders and file layout are de
 | # | Component | Radix / base | Milestone | Anatomy & key rules |
 |---|---|---|---|---|
 | 11.1 | **Button** | Native `<button>` (+ Radix Slot for link-as-button) | M0 | Variants: primary, secondary, ghost, destructive, icon-only. Height 40 (32 small, 44 touch). Label 14/20, weight 500; icon 16 px with 8 px gap. Icon-only requires accessible name and tooltip. Loading shows `loader` + "Working…", retains width, `aria-disabled`. |
-| 11.2 | **Input** | Native `<input>` | M0 | Sunken fill, 1 px Border Strong, 6 px radius, 40 px height (44 mobile, 16 px text). Label above (13/20), helper text below (Muted, only on Deep/Ocean Navy/Sunken), error text with icon. Supports prefix/suffix icon, password with Show/Hide. |
+| 11.2 | **Input** | Native `<input>` | M0 | Sunken fill, 1 px Border Strong, 6 px radius, 40 px height (44 mobile, 16 px text). Label above (13/20), helper text below (Muted, only on Deep/Deep Forest/Sunken), error text with icon. Supports prefix/suffix icon, password with Show/Hide. |
 | 11.3 | **Textarea** | Native | M0 | As Input; auto-grow with min rows, character counter (`mono-sm`) tied via `aria-describedby`; counter turns Danger text + icon on limit breach. |
-| 11.4 | **Select / Dropdown menu / Switch / Checkbox / Radio / ToggleGroup** | Radix Select, DropdownMenu, Switch, Checkbox, RadioGroup, ToggleGroup | M0–M1 | Boundaries Border Strong; Switch "on" track Electric Blue with text "On"/"Off" visible; checked states use Light Aqua check mark on Sunken or Primary Blue fill with white check; hit area ≥ 24 px, 44 px touch. |
-| 11.5 | **Navigation** (Sidebar, Header, InvestigationNav, MobileNavDialog) | Native `<nav>`; Radix Dialog for mobile | M0 | See §6–7. Selected: Ocean Blue fill + Text Primary + 3 px aqua indicator + `aria-current`. |
-| 11.6 | **Card** | `<section>`/`<article>` | M0 | Ocean Navy, 1 px Border Subtle, 10 px radius, padding 24 (16 mobile). Optional header (`ui-h4`), footer actions. Never interactive as a whole unless it is a single link (stretched link). |
-| 11.7 | **Table** | Native `<table>` | M1 | Header row Ocean Navy with `ui-caption` uppercase 0.02em headers, rows 1 px Border Subtle dividers, row hover Raised, tabular numerals, sticky header optional; collapses to cards below 768 px; scroll container for overflow; sortable headers are buttons with `aria-sort`. |
-| 11.8 | **Tabs** | Radix Tabs | M1 | For in-page panels (Plan/Sources/Activity/Budget). 44 px height; selected 2 px aqua underline + Primary text; arrow-key roving focus. Not used for route navigation (§7.3). |
+| 11.4 | **Select / Dropdown menu / Switch / Checkbox / Radio / ToggleGroup** | Radix Select, DropdownMenu, Switch, Checkbox, RadioGroup, ToggleGroup | M0–M1 | Boundaries Border Strong; Switch "on" track Teal with text "On"/"Off" visible; checked states use Mint check mark on Sunken or Primary Blue fill with white check; hit area ≥ 24 px, 44 px touch. |
+| 11.5 | **Navigation** (Sidebar, Header, InvestigationNav, MobileNavDialog) | Native `<nav>`; Radix Dialog for mobile | M0 | See §6–7. Selected: Pine fill + Text Primary + 3 px mint indicator + `aria-current`. |
+| 11.6 | **Card** | `<section>`/`<article>` | M0 | Deep Forest, 1 px Border Subtle, 10 px radius, padding 24 (16 mobile). Optional header (`ui-h4`), footer actions. Never interactive as a whole unless it is a single link (stretched link). |
+| 11.7 | **Table** | Native `<table>` | M1 | Header row Deep Forest with `ui-caption` uppercase 0.02em headers, rows 1 px Border Subtle dividers, row hover Raised, tabular numerals, sticky header optional; collapses to cards below 768 px; scroll container for overflow; sortable headers are buttons with `aria-sort`. |
+| 11.8 | **Tabs** | Radix Tabs | M1 | For in-page panels (Plan/Sources/Activity/Budget). 44 px height; selected 2 px mint underline + Primary text; arrow-key roving focus. Not used for route navigation (§7.3). |
 | 11.9 | **StatusBadge** (investigation, source, extraction, check) | Native `<span>` | M1 | Icon 12–14 px + text 12/16 weight 500, 4 px radius, tint background + status-color text/icon per §4.4. Text always visible. |
 | 11.10 | **PhaseTracker** | Native `<ol>` | M1 | §9.2. |
 | 11.11 | **BudgetMeter / BudgetStrip** | Native; optional Radix Progress with `aria-valuenow` | M1 | §9.5. Each meter has a text value; bar is decorative (`aria-hidden`) when text duplicates it. |
-| 11.12 | **Modal / AlertDialog** | Radix Dialog, AlertDialog | M0–M1 | 14 px radius, Ocean Navy, Border Strong 1 px, scrim, max 520 px wide (full-screen sheet below 480 px for long forms), focus trap, `Esc`, return focus, title + description wired via `aria-labelledby`/`describedby`. AlertDialog initial focus on Cancel. |
+| 11.12 | **Modal / AlertDialog** | Radix Dialog, AlertDialog | M0–M1 | 14 px radius, Deep Forest, Border Strong 1 px, scrim, max 520 px wide (full-screen sheet below 480 px for long forms), focus trap, `Esc`, return focus, title + description wired via `aria-labelledby`/`describedby`. AlertDialog initial focus on Cancel. |
 | 11.13 | **Drawer / EvidencePanel container** | Radix Dialog (modal modes); custom `aside` (docked) | M1 | §8.6, §10.3. 14 px radius on overlay left corners; 0 docked; slide 200 ms (instant when reduced). |
 | 11.14 | **Notification** — Toast + Banner + InlineAlert | Radix Toast (`role="status"`); native for banners | M1 | Toast: Raised surface, 10 px radius, auto-dismiss after 6 s for success/info (never for errors), pause on hover/focus, closable, never the only place important information appears. Banner: tinted per §4.4, icon + title + body + optional action; `role="alert"` only for new errors, else `role="status"` / static. |
 | 11.15 | **FileUpload** | Native `<input type="file">` + drop zone | M2 | §8.7. Drop zone is a labelled button; per-file rows with state text; supports multiple files; rejects with the specific messages in §8.7. |
@@ -1344,11 +1346,11 @@ State legend: ✔ required; — not applicable. All interactive components requi
 
 | Variant | Default | Hover | Pressed | Focus-visible | Disabled | Loading |
 |---|---|---|---|---|---|---|
-| Primary | `#0066D9` fill / white text | `#005BC4` | `#0050AD` | Aqua ring, 2 px offset | 40% opacity, `aria-disabled`, no hover | `loader` + "Working…", width locked |
-| Secondary | Transparent, Border Strong, Primary text | Raised fill | Sunken fill | Aqua ring | 40% opacity | as above |
-| Ghost / link-style | Link color text, no border | Underline, Raised fill if in a toolbar (text switches to Aqua) | Sunken fill | Aqua ring | 40% opacity | — |
-| Destructive | `#FF8A8A` fill / Deep Navy text | `#FF7373` | `#FF5C5C` | Aqua ring, **outside** offset only | 40% opacity | as above |
-| Icon-only | 40×40 (44 touch), icon Text Primary | Raised fill | Sunken fill | Aqua ring | 40% opacity | spinner |
+| Primary | `#1E7F69` fill / white text | `#1A705D` | `#16614F` | Mint ring, 2 px offset | 40% opacity, `aria-disabled`, no hover | `loader` + "Working…", width locked |
+| Secondary | Transparent, Border Strong, Primary text | Raised fill | Sunken fill | Mint ring | 40% opacity | as above |
+| Ghost / link-style | Link color text, no border | Underline, Raised fill if in a toolbar (text switches to Mint) | Sunken fill | Mint ring | 40% opacity | — |
+| Destructive | `#FF8A8A` fill / Forest Black text | `#FF7373` | `#FF5C5C` | Mint ring, **outside** offset only | 40% opacity | as above |
+| Icon-only | 40×40 (44 touch), icon Text Primary | Raised fill | Sunken fill | Mint ring | 40% opacity | spinner |
 
 Disabled controls use `aria-disabled="true"` where the control should stay focusable to explain why (for example offline); a true `disabled` is used otherwise. Disabled text is exempt from contrast thresholds but must remain legible and carry a reason when the control is a primary path.
 
@@ -1357,8 +1359,8 @@ Disabled controls use `aria-disabled="true"` where the control should stay focus
 | State | Input / Textarea / Select |
 |---|---|
 | Default | Sunken fill, Border Strong, Primary text, Muted placeholder (6.61 on Deep, 7.34 on Sunken) |
-| Hover | Border `#A9BBD0` (Secondary text color) |
-| Focus | Aqua 2 px ring (offset 2) + Border Strong retained |
+| Hover | Border `#A9C2B8` (Secondary text color) |
+| Focus | Mint 2 px ring (offset 2) + Border Strong retained |
 | Filled | As default |
 | Error | Danger 2 px bottom/left emphasis **plus** error icon and message; `aria-invalid` |
 | Disabled | 40% opacity, dashed Border Subtle |
@@ -1371,15 +1373,15 @@ Placeholders are never the only label.
 
 | Element | Default | Hover | Selected | Focus-visible | Disabled |
 |---|---|---|---|---|---|
-| Sidebar item | Text Secondary label on Ocean Navy | Raised fill, Text Secondary → Primary | Ocean Blue fill, Primary text, white icon, aqua left bar, `aria-current` | Aqua 2 px ring, inset (offset −2 px) so the sidebar edge does not clip it; aqua vs Ocean Blue is 5.54:1 | — (items absent, not disabled) |
-| Investigation nav link | Text Secondary | Text Primary + Raised bg | Text Primary + aqua underline, `aria-current` | Aqua ring | — |
-| In-page Tabs trigger | Text Secondary | Primary text | Primary text + aqua underline, `aria-selected` | Aqua ring | 40% opacity |
+| Sidebar item | Text Secondary label on Deep Forest | Raised fill, Text Secondary → Primary | Pine fill, Primary text, white icon, mint left bar, `aria-current` | Mint 2 px ring, inset (offset −2 px) so the sidebar edge does not clip it; mint vs Pine is 5.54:1 | — (items absent, not disabled) |
+| Investigation nav link | Text Secondary | Text Primary + Raised bg | Text Primary + mint underline, `aria-current` | Mint ring | — |
+| In-page Tabs trigger | Text Secondary | Primary text | Primary text + mint underline, `aria-selected` | Mint ring | 40% opacity |
 
 ### 12.4 Status badges
 
 | Variant | Background | Text/icon | Border |
 |---|---|---|---|
-| Running / Planning | `--dt-tint` Electric Blue 18% | Text Primary + Electric icon (non-text) | none |
+| Running / Planning | `--dt-tint` Teal 18% | Text Primary + Teal icon (non-text) | none |
 | Completed / Passed | Success tint | Success | none |
 | Warning (Interrupted, Paused, Budget reached, Uncertain, degraded) | Warning tint | Warning | none |
 | Danger (Failed, blocked, Failed check) | Danger tint | Danger | none |
@@ -1394,23 +1396,23 @@ Badges are not interactive. If a badge opens an explanation, wrap it in a button
 | State | Appearance |
 |---|---|
 | Default | Raised fill, 1 px Border Strong, Primary mono label |
-| Hover | Border `#A9BBD0`, tooltip after 400 ms |
-| Focus-visible | Aqua ring |
+| Hover | Border `#A9C2B8`, tooltip after 400 ms |
+| Focus-visible | Mint ring |
 | Pressed | Sunken fill |
-| Open/active | 2 px aqua left edge + Selected tint; `aria-expanded="true"`; claim block gets active Sounding Line |
-| Inert (source removed) | Dashed Border Strong, Muted label "Source removed" (muted on Ocean Navy 5.03), not focusable as a button but available as text |
+| Open/active | 2 px mint left edge + Selected tint; `aria-expanded="true"`; claim block gets active Sounding Line |
+| Inert (source removed) | Dashed Border Strong, Muted label "Source removed" (muted on Deep Forest 5.03), not focusable as a button but available as text |
 | M3 assessed | Appends 12 px status icon; accessible name includes label |
 
 ### 12.6 ClaimBlock
 
 | State | Gutter | Extra |
 |---|---|---|
-| Cited, rest | Aqua 35% line | Chips |
-| Cited, hover/focus-within | Aqua 100% | — |
-| Cited, active | Aqua 100% + 6% aqua tint | Drawer open |
+| Cited, rest | Mint 35% line | Chips |
+| Cited, hover/focus-within | Mint 100% | — |
+| Cited, active | Mint 100% + 6% mint tint | Drawer open |
 | Not established | Dashed Danger line | Label + icon + "What would help" |
 | Citation removed | Dashed Danger line | Label + note |
-| M3 Contested | Aqua line retained + Contested chip | Link to Compare |
+| M3 Contested | Mint line retained + Contested chip | Link to Compare |
 | Loading | Skeleton lines | — |
 
 ### 12.7 Phase tracker markers
@@ -1419,7 +1421,7 @@ See §9.2 table. Also required: reduced-motion static variant for Active.
 
 ### 12.8 Table rows and cards
 
-Default (Ocean Navy), hover (Raised; muted text switches to Secondary, rule C2), focus-within (aqua ring on the row's link/button, not the whole row), selected (Ocean Blue only for the Dashboard's keyboard-selected row if introduced; otherwise unused), expanded (Sunken detail well), loading (skeleton), empty (§8.0.4), error (inline row error with retry).
+Default (Deep Forest), hover (Raised; muted text switches to Secondary, rule C2), focus-within (mint ring on the row's link/button, not the whole row), selected (Pine only for the Dashboard's keyboard-selected row if introduced; otherwise unused), expanded (Sunken detail well), loading (skeleton), empty (§8.0.4), error (inline row error with retry).
 
 ### 12.9 Drawer / modal
 
@@ -1443,7 +1445,7 @@ Default (Ocean Navy), hover (Raised; muted text switches to Secondary, rule C2),
 
 ### 12.11 FileUpload
 
-Idle, drag-over (dashed aqua border + text "Drop to upload"), file-selected, uploading (progress text and bar), validating, extracting, indexing, ready, rejected (reason), warning (scan detected), and removed. Each state has text, not color alone.
+Idle, drag-over (dashed mint border + text "Drop to upload"), file-selected, uploading (progress text and bar), validating, extracting, indexing, ready, rejected (reason), warning (scan detected), and removed. Each state has text, not color alone.
 
 ### 12.12 AssessmentLabel (M3)
 
@@ -1476,7 +1478,7 @@ Target: **WCAG 2.2 Level AA** for core flows (NFR-A1). Core flows for AC-17: (1)
 
 ### 13.2 Focus
 
-- Visible aqua focus ring everywhere (§4.6), never removed.
+- Visible mint focus ring everywhere (§4.6), never removed.
 - Focus not obscured (2.4.11): sticky header/tabs/docked drawer use `scroll-padding` so a focused element is never hidden behind them.
 - Route change: focus moves to the page `h1`; modal open: to the dialog heading (or the Cancel button for AlertDialog); modal close: back to the trigger.
 - Focus is never moved by background updates (progress, new sources).

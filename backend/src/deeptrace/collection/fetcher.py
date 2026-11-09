@@ -11,6 +11,11 @@ from deeptrace.collection.policy import CollectionError, normalize_url
 from deeptrace.collection.transport import Reply
 
 LIMIT = 5_000_000
+ROBOTS_MISSING = frozenset({404, 410})
+# Failures whose real cause is reported as-is; anything else about robots.txt is "unavailable".
+PASS_THROUGH = frozenset(
+    {"consent_revoked", "timeout", "dns_failed", "blocked_destination", "tls_failed", "blocked"}
+)
 
 
 class Transport(Protocol):
@@ -27,6 +32,7 @@ class Fetcher:
         deadline: float,
         limit: int = LIMIT,
         permitted: Callable[[str], bool] = lambda _: True,
+        missing_ok: bool = False,
     ) -> tuple[str, bytes, str]:
         for redirect in range(6):
             if not self.allowed():
@@ -52,6 +58,8 @@ class Fetcher:
                     raise CollectionError("unsafe_redirect")
                 url = target
                 continue
+            if missing_ok and response.status in ROBOTS_MISSING:
+                return url, b"", "text/plain"
             if response.status != 200:
                 raise CollectionError(
                     "blocked" if response.status in {401, 403, 429} else "fetch_failed"
@@ -90,14 +98,22 @@ class Fetcher:
         deadline = time.monotonic() + 15
         origin = urlsplit(url)
         robots_url = f"{origin.scheme}://{origin.netloc}/robots.txt"
+        # ADR-A13 as clarified 2026-11-09, following RFC 9309: a disallow is always honoured;
+        # a missing or empty robots.txt means no restrictions; if it cannot be read, the page
+        # is skipped and the real reason is kept, so a DNS failure is never reported as a refusal.
         try:
-            _, body, _ = self.request(robots_url, deadline, 100_000)
-            robots = RobotFileParser()
+            _, body, _ = self.request(robots_url, deadline, 100_000, missing_ok=True)
+        except CollectionError as exc:
+            if exc.code in PASS_THROUGH:
+                raise
+            raise CollectionError("robots_unavailable") from None
+        robots = RobotFileParser()
+        try:
             robots.parse(body.decode("utf-8", errors="strict").splitlines())
-            if not body.strip() or not robots.can_fetch("DeepTraceAI", url):
-                raise CollectionError("robots_blocked")
-        except CollectionError, UnicodeError:
-            raise CollectionError("robots_blocked") from None
+        except UnicodeError:
+            raise CollectionError("robots_unavailable") from None
+        if not robots.can_fetch("DeepTraceAI", url):
+            raise CollectionError("robots_blocked")
         return self.request(
             url, deadline, permitted=lambda target: robots.can_fetch("DeepTraceAI", target)
         )

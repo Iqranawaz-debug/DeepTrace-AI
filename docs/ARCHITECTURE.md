@@ -31,7 +31,7 @@ This document records the owner's approval of a **modular monolith**, the revise
 | ADR-A10 | M1 bounded lexical passage ranking; M2 FastEmbed BGE-small-en-v1.5 plus SQLite/NumPy exact search | Approved; embeddings not required to deliver M1. |
 | ADR-A11 | M2 `pypdf` + `pypdfium2`; Apache-2.0 application licensing and third-party notices | Approved per INTEGRATIONS. |
 | ADR-A12 | React Router, TanStack Query, existing DESIGN component choices; typed OpenAPI schemas where practical | Proposed implementation tools; confirm compatibility during scaffold, avoid dependency proliferation. |
-| ADR-A13 | Conservative `robots.txt` policy: if retrieval/permission cannot be established, skip that host for the run and report it | Approved safety default; do not circumvent site restrictions. |
+| ADR-A13 | Conservative `robots.txt` policy following RFC 9309: a disallow is always honoured; a missing (404/410) or empty `robots.txt` means no restrictions; if it cannot be retrieved or read, skip that page and report the real reason | Approved safety default; do not circumvent site restrictions. Clarified by the owner on 2026-11-09 after the first live run, where DNS failures had been reported as robots refusals. |
 | ADR-A14 | Quote matching: NFC normalization and whitespace collapse, case-sensitive, no paraphrase/fuzzy acceptance | Approved baseline; offsets remain defined on the unnormalized saved extraction. |
 | ADR-A15 | Small three-sprint foundation followed by remaining M1, M2, M3 and M4 | Approved; each sprint has independent exit criteria. |
 
