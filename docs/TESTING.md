@@ -360,3 +360,21 @@ Frontend coverage is not measured. The secret scan matches known key formats onl
 
 Windows' 260-character path limit can fail `test_secret_scan.py` when the checkout path is very
 long, because those tests create Git repositories under pytest's temporary folder.
+
+## Closure validation (executed 2026-11-09)
+
+After the first live runs, the frontend redesign and the final fixes (tracker grouping, failure reason in the outline, wider pages).
+
+| Check | Result |
+|---|---|
+| Secret scan | Passed, 148 files |
+| Backend: Ruff, format, mypy | Passed (61 files formatted, 42 source files typed) |
+| Backend tests with coverage | **326 passed**, **92%** line and branch coverage |
+| Frontend: ESLint, TypeScript, build | Passed |
+| Components | **39 passed**, 6 files |
+| Real browser | **7 passed** on the redesign (Microsoft Edge 157), before the final tracker and layout changes |
+
+**Edge tests not rerun after the final two changes:** the tracker grouping with the failure reason, and the page width. They were not rerun because the dev servers were in use. Both changes are covered by component tests. The one Edge assertion on the tracker uses a completed run, which is unaffected.
+
+**Live runs:** the first live run on 2026-11-09 completed with 7 cited findings, 9 of 9 quotations matched and 2 citations suppressed. A later run failed with `unavailable`: Gemini's free tier didn't answer three attempts after all pages had been read.
+

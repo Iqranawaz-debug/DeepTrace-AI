@@ -303,3 +303,14 @@ it('re-reads the investigation when a run finishes so its status label updates',
   vi.mocked(api.getProgress).mockResolvedValue(progress({ status: 'completed' }))
   await waitFor(() => expect(api.getInvestigation).toHaveBeenCalledTimes(2), { timeout: 5000 })
 })
+
+it('shows a model failure after reading on Check, with the real reason beside the tracker', async () => {
+  const stages = ['discover', 'fetch', 'rank'].map(stage_key => ({ stage_key, stage_revision: 1, status: 'completed', completed_at: 'now', error_code: null }))
+  vi.mocked(api.listRuns).mockResolvedValue([run({ status: 'failed', error_code: 'unavailable', mode: 'live_free' })])
+  vi.mocked(api.getProgress).mockResolvedValue(progress({ status: 'failed', error_code: 'unavailable', stages }))
+  panel()
+  const tracker = await screen.findByRole('list', { name: 'Research progress' })
+  expect(within(tracker).getAllByRole('listitem').map(item => item.textContent)).toEqual(['PlanCompleted', 'DiscoverCompleted', 'ReadCompleted', 'CheckFailed', 'ReportNot reached'])
+  const outline = screen.getByRole('complementary', { name: 'Investigation outline' })
+  expect(within(outline).getByText(/A provider didn't respond, even after retries.*Saved sources are kept\./)).toBeVisible()
+})

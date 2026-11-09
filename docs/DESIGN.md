@@ -1076,11 +1076,11 @@ Five user-facing phases summarize the PRD's ten pipeline stages (PRD §11.1).
 |---|---|---|
 | 1. **Plan** | Plan | "Drafting the research plan" |
 | 2. **Discover** | Discover (search) | "Searching for sources ({n} of {max} searches)" |
-| 3. **Read** | Fetch → Extract → Retrieve/Rank → Draft | "Reading sources ({n} of {max} pages)" / "Drafting the answer" |
-| 4. **Check** | Validate References/Quotes → Assess Claim Support (M3) | "Checking references and quotations" |
+| 3. **Read** | Fetch → Extract → Retrieve/Rank | "Reading sources ({n} of {max} pages)" |
+| 4. **Check** | Draft → Validate References/Quotes → Assess Claim Support (M3) | "Drafting the answer" / "Checking references and quotations" |
 | 5. **Report** | Present → Report | "Preparing the report" |
 
-*Assumption (DQ-01):* Draft is grouped under Read because it consumes the retrieved passages; the owner may regroup it under Check without any other design change. In M1–M2 the Check phase contains only the deterministic validation; "Assess Claim Support" joins it in M3 and the stage text then reads "Checking references, quotations and support".
+*Decision (DQ-01, resolved 2026-11-09):* Draft is grouped under **Check**. A live run failed when the model was unavailable after all pages were read, and showing that as "Read — Failed" was misleading. A stopped run also shows its reason (the same wording as §9.6) beside the tracker in the workspace outline. In M1–M2 the Check phase contains only the deterministic validation; "Assess Claim Support" joins it in M3 and the stage text then reads "Checking references, quotations and support".
 
 **Phase states** (each phase shows its name and a state word, never an icon alone):
 

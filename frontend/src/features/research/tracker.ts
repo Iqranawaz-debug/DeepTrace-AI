@@ -10,7 +10,9 @@ function finished(progress: Progress): number {
   const done = new Set(progress.stages.filter(stage => stage.status === 'completed').map(stage => stage.stage_key))
   if (progress.status === 'completed') return PHASES.length
   if (!done.has('discover')) return 1
-  if (!done.has('synthesize')) return 2
+  // DESIGN §9.2 (DQ-01 resolved 2026-11-09): drafting the answer belongs to Check, so a model
+  // failure is never shown as a failure to read pages.
+  if (!done.has('rank')) return 2
   if (!done.has('validate')) return 3
   return done.has('report') ? 5 : 4
 }
@@ -33,8 +35,9 @@ export function stageLine(progress: Progress, budgets: Budgets | null): string {
   const done = new Set(progress.stages.map(stage => stage.stage_key))
   const count = finished(progress)
   if (count === 1) return `Searching for sources (${progress.usage.search_attempts}${budgets ? ` of ${budgets.max_searches}` : ''} searches)`
-  if (count === 2) return done.has('rank') ? 'Drafting the answer' : `Reading sources (${progress.usage.pages_attempted}${budgets ? ` of ${budgets.max_pages}` : ''} pages)`
-  return count === 3 ? 'Checking references and quotations' : 'Preparing the report'
+  if (count === 2) return `Reading sources (${progress.usage.pages_attempted}${budgets ? ` of ${budgets.max_pages}` : ''} pages)`
+  if (count === 3) return done.has('synthesize') ? 'Checking references and quotations' : 'Drafting the answer'
+  return 'Preparing the report'
 }
 
 const EVENTS: Record<string, string> = {

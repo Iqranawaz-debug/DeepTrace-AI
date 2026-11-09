@@ -6,7 +6,7 @@ import { getInvestigation, getPlan, startResearch, type Budgets, type Investigat
 import { InvestigationForm } from '../investigations/InvestigationForm'
 import { ResearchTracker } from '../research/ResearchTracker'
 import { EvidenceInspector } from './EvidenceInspector'
-import { ACTIVE, BUDGET_LABELS, STATUS_TEXT, useResearch, useWorkspace, WorkspaceProvider, type Research } from './workspace'
+import { ACTIVE, BUDGET_LABELS, FAILURES, STATUS_TEXT, useResearch, useWorkspace, WorkspaceProvider, type Research } from './workspace'
 
 const TABS = [['', 'Plan'], ['findings', 'Findings'], ['sources', 'Sources'], ['evidence', 'Evidence'], ['report', 'Report']] as const
 
@@ -117,6 +117,7 @@ function Outline() {
     <section><h2 className="outline-label">Research run</h2>
       {!latest ? <p className="outline-muted">No research run yet.</p> : <>
         <p className="outline-status"><strong>{latest.mode === 'mock' ? 'SIMULATED · ' : ''}{progress?.cancel_requested && ACTIVE.includes(latest.status) ? 'Cancelling' : STATUS_TEXT[latest.status] ?? latest.status}</strong> · {latest.scope === 'plan_generation' ? 'Plan generation' : 'Research'}</p>
+        {latest.error_code && !ACTIVE.includes(latest.status) && <p className="outline-reason">{FAILURES[latest.error_code] ?? 'This run stopped early.'} Saved sources are kept.</p>}
         {progress && latest.scope === 'research_pipeline' && progress.scope === 'research_pipeline' && <ResearchTracker progress={progress} vertical />}
         {progress && <p className="outline-muted">{progress.usage.search_attempts} searches · {progress.usage.pages_retrieved} pages · {progress.usage.model_attempts} model calls · ~{progress.usage.estimated_tokens.toLocaleString()} tokens</p>}
       </>}</section>

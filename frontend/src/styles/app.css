@@ -49,7 +49,7 @@ nav[aria-label="Main"] { display: grid; gap: 4px; }
 .mode-chip svg, .mode-chip strong { color: var(--accent-evidence); font-weight: 500; }
 .mode-chip.live { border-color: var(--status-warning); }
 .mode-chip.live svg, .mode-chip.live strong { color: var(--status-warning); }
-main { padding: 32px 28px 24px; width: 100%; max-width: 1180px; scroll-margin-top: 80px; }
+main { padding: 32px 40px 24px; width: 100%; max-width: 1560px; margin-inline: auto; scroll-margin-top: 80px; }
 main.wide { max-width: none; padding: 0; }
 .tooltip { z-index: 70; padding: 6px 10px; border: 1px solid var(--border-decor); background: var(--bg-raised); border-radius: 6px; font-size: .75rem; max-width: 280px; }
 
@@ -151,7 +151,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .stat-label { font-size: .75rem; color: var(--text-secondary); }
 .stat-value { font-size: 1.75rem; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .stat-detail { font-size: .75rem; color: var(--text-muted); }
-.overview-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); gap: 20px; align-items: start; }
+.overview-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 20px; align-items: start; }
 .continue-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
 .continue-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--border-decor); border-radius: 10px; background: var(--bg-surface); transition: border-color .15s; }
 .continue-card:hover, .continue-card:focus-within { border-color: var(--border-control); }
@@ -188,6 +188,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .outline-steps { margin: 0; padding-left: 22px; list-style: decimal outside; display: grid; gap: 8px; color: var(--text-secondary); font-size: .8125rem; }
 .outline-steps li::marker { color: var(--text-muted); font-family: var(--font-mono); font-size: .75rem; }
 .outline-status { margin-bottom: 4px; }
+.outline-reason { margin: 6px 0 4px; padding: 6px 10px; border-left: 3px solid var(--status-danger); background: var(--tint-danger); border-radius: 0 6px 6px 0; font-size: .8125rem; color: var(--text-default); }
 .ws-center { min-width: 0; padding: 0 28px 32px; }
 .ws-notices { padding-top: 12px; }
 .ws-tabs { position: sticky; top: 56px; z-index: 10; display: flex; gap: 4px; background: var(--bg-app); border-bottom: 1px solid var(--border-decor); margin: 0 -28px 24px; padding: 0 28px; overflow-x: auto; }
