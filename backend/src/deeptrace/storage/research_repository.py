@@ -14,7 +14,14 @@ from deeptrace.evidence import kernel
 from deeptrace.research.contracts import Budgets, PlanOutput
 from deeptrace.storage.collection_repository import CollectionRepository
 from deeptrace.storage.database import Database
-from deeptrace.storage.repository import Repository, WorkspaceError, lookup, stamp
+from deeptrace.storage.repository import (
+    SELECT_INVESTIGATION,
+    Repository,
+    WorkspaceError,
+    lookup,
+    stamp,
+    to_investigation,
+)
 
 
 @dataclass(frozen=True)
@@ -618,6 +625,80 @@ class ResearchRepository:
                 "markdown_text": row["markdown_text"],
                 "current_warnings": warnings,
             }
+
+    # Overview -------------------------------------------------------------------
+
+    def overview(self) -> dict[str, Any]:
+        """Real counts for the Command Center. Nothing here is estimated or scored."""
+        latest_answer = (
+            "SELECT a.id FROM generated_answers a WHERE a.investigation_id=i.id "
+            "ORDER BY a.generated_at DESC,a.rowid DESC LIMIT 1"
+        )
+        with self.db.connection() as con:
+            con.row_factory = sqlite3.Row
+
+            def count(sql: str) -> int:
+                return int(con.execute(sql).fetchone()[0])
+
+            totals = {
+                "investigations": count("SELECT COUNT(*) FROM investigations"),
+                "sources": count("SELECT COUNT(*) FROM sources"),
+                "sources_read": count(
+                    "SELECT COUNT(*) FROM sources WHERE status IN ('fetched','partial')"
+                ),
+                "passages": count("SELECT COUNT(*) FROM passages WHERE removed_at IS NULL"),
+                "cited_findings": count(
+                    "SELECT COUNT(*) FROM generated_claims c JOIN investigations i "
+                    f"ON i.id=c.investigation_id WHERE c.answer_id=({latest_answer}) "
+                    "AND c.evidence_state='cited'"
+                ),
+                "reports": count("SELECT COUNT(*) FROM generated_reports")
+                + count("SELECT COUNT(*) FROM report_versions"),
+            }
+            rows = con.execute(
+                SELECT_INVESTIGATION
+                + "WHERE i.id NOT IN (SELECT investigation_id FROM investigation_archives) "
+                "ORDER BY i.updated_at DESC,i.id LIMIT 4"
+            ).fetchall()
+            recent = []
+            for row in rows:
+                item = to_investigation(row)
+                ident = str(item.id)
+                stats = con.execute(
+                    "SELECT (SELECT COUNT(*) FROM sources WHERE investigation_id=:i AND status "
+                    "IN ('fetched','partial')),(SELECT COUNT(*) FROM plan_items p JOIN plans "
+                    "ON plans.id=p.plan_id WHERE plans.investigation_id=:i),"
+                    "(SELECT MAX(version_no) FROM generated_reports WHERE investigation_id=:i),"
+                    "(SELECT COUNT(*) FROM "
+                    "generated_claims WHERE evidence_state='cited' AND answer_id=(SELECT id FROM "
+                    "generated_answers WHERE investigation_id=:i ORDER BY generated_at DESC,rowid "
+                    "DESC LIMIT 1))",
+                    {"i": ident},
+                ).fetchone()
+                recent.append(
+                    {
+                        "id": ident,
+                        "title": item.title,
+                        "question": item.question,
+                        "lifecycle": item.lifecycle,
+                        "updated_at": item.updated_at,
+                        "sources": item.source_count,
+                        "sources_read": stats[0],
+                        "plan_steps": stats[1],
+                        "report_version": stats[2],
+                        "cited_findings": stats[3],
+                    }
+                )
+            activity = [
+                dict(row)
+                for row in con.execute(
+                    "SELECT e.event_type,e.created_at,r.investigation_id,i.title,"
+                    "json_extract(r.config_snapshot_json,'$.scope') AS scope FROM run_events e "
+                    "JOIN runs r ON r.id=e.run_id JOIN investigations i ON i.id=r.investigation_id "
+                    "ORDER BY e.created_at DESC,e.rowid DESC LIMIT 8"
+                )
+            ]
+            return {"totals": totals, "recent": recent, "activity": activity}
 
     # Investigation lifecycle -----------------------------------------------------
 

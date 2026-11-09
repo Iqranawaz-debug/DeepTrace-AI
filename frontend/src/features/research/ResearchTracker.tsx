@@ -5,11 +5,11 @@ import { eventText, PHASES, phaseStates, stageLine, type PhaseState } from './tr
 
 const ICONS: Record<PhaseState, typeof Circle> = { Completed: CircleCheck, 'In progress': Loader, Pending: Circle, Failed: CircleX, Cancelled: Ban, Interrupted: Unplug, 'Budget reached': Gauge, 'Not reached': Circle }
 
-export function ResearchTracker({ progress }: { progress: Progress }) {
+export function ResearchTracker({ progress, vertical = false }: { progress: Progress; vertical?: boolean }) {
   const states = phaseStates(progress)
   const line = stageLine(progress, progress.budgets)
   return <>
-    <ol className="phase-tracker" aria-label="Research progress">{PHASES.map((phase, index) => {
+    <ol className={`phase-tracker${vertical ? ' vertical' : ''}`} aria-label="Research progress">{PHASES.map((phase, index) => {
       const Icon = ICONS[states[index]]
       return <li key={phase} className={`phase phase-${states[index].toLowerCase().replaceAll(' ', '-')}`} aria-current={states[index] === 'In progress' ? 'step' : undefined}><Icon size={18} aria-hidden="true" /><strong>{phase}</strong><span>{states[index]}</span></li>
     })}</ol>

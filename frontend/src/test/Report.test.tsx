@@ -1,16 +1,15 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { ReportPage } from '../features/report/ReportPage'
+import { renderWorkspace } from './workspace'
 import { SavedUrls } from '../features/evidence/SavedUrls'
-import { UnsavedChanges } from '../features/investigations/InvestigationForm'
 import * as api from '../api/client'
 
 vi.mock('../api/client', async importOriginal => ({
   ...await importOriginal<typeof api>(),
   getInvestigation: vi.fn(), getPlan: vi.fn(), listEvidencePassages: vi.fn(), listNotes: vi.fn(), getAnswer: vi.fn(),
   saveAnswer: vi.fn(), saveNote: vi.fn(), listReports: vi.fn(), getReport: vi.fn(), createReport: vi.fn(), listSavedUrls: vi.fn(), saveUrl: vi.fn(), getGeneratedAnswer: vi.fn(), listGeneratedReports: vi.fn(),
+  getProviders: vi.fn(), listRuns: vi.fn(), getProgress: vi.fn(), listSources: vi.fn(),
 }))
 
 const HOSTILE = '<img src=x onerror="window.__pwned=1"><script>window.__pwned=1</script>'
@@ -27,16 +26,23 @@ beforeEach(() => {
   vi.mocked(api.listReports).mockResolvedValue([])
   vi.mocked(api.getGeneratedAnswer).mockResolvedValue(null)
   vi.mocked(api.listGeneratedReports).mockResolvedValue([])
+  vi.mocked(api.getProviders).mockResolvedValue({ mode: 'mock', live_network: false, fixture_collection: true, consent: true, blockers: [], providers: [] })
+  vi.mocked(api.listRuns).mockResolvedValue([])
+  vi.mocked(api.listSources).mockResolvedValue([])
+  vi.mocked(api.listSavedUrls).mockResolvedValue([])
 })
 
-function page() {
-  return render(<RouterProvider router={createMemoryRouter([{ path: '/investigations/:id/report', element: <UnsavedChanges><ReportPage /></UnsavedChanges> }], { initialEntries: ['/investigations/inv/report'] })} />)
+function page(tab = 'report') {
+  return renderWorkspace(`/investigations/inv/${tab}`)
 }
 
 it('renders hostile source text inertly and labels simulated evidence', async () => {
+  const evidence = page('evidence')
+  expect(await screen.findByText(`SIMULATED EVIDENCE ${HOSTILE}`)).toBeVisible()
+  expect(document.querySelector('img, script:not([src])')).toBeNull()
+  evidence.unmount()
   page()
   expect(await screen.findByText(/Simulated evidence\./)).toBeVisible()
-  expect(screen.getByText(`SIMULATED EVIDENCE ${HOSTILE}`)).toBeVisible()
   expect(document.querySelector('img, script:not([src])')).toBeNull()
   expect((window as unknown as { __pwned?: number }).__pwned).toBeUndefined()
   expect(screen.getByRole('button', { name: 'Create report version' })).toBeDisabled()

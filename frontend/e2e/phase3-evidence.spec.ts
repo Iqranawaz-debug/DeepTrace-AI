@@ -15,7 +15,8 @@ test('synthetic evidence persists with provenance, accessible inspector and no e
   await page.getByLabel(/^Title/).fill('Synthetic evidence browser study')
   await page.getByLabel(/^Main research question/).fill('Can synthetic sources retain exact provenance?')
   await page.getByRole('button', { name: 'Create investigation' }).click()
-  await expect(page.getByRole('heading', { name: 'Evidence workspace' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Evidence' }).click()
+  await expect(page.getByRole('heading', { name: 'Collection and saved URLs' })).toBeVisible()
   const consent = page.getByRole('button', { name: 'Enable synthetic collection' })
   // Wait for the provider state to load; isVisible() alone does not wait and races the poll.
   await expect(consent.or(page.getByRole('button', { name: 'Revoke fixture permission' }))).toBeVisible()

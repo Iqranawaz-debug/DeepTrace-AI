@@ -196,3 +196,16 @@ export async function getMode(signal?: AbortSignal): Promise<string | null> {
   const data: unknown = await response.json()
   return record(data) && typeof data.mode === 'string' ? data.mode : null
 }
+export interface OverviewTotals { investigations: number; sources: number; sources_read: number; passages: number; cited_findings: number; reports: number }
+export interface OverviewItem { id: string; title: string; question: string; lifecycle: string | null; updated_at: string; sources: number; sources_read: number; plan_steps: number; report_version: number | null; cited_findings: number }
+export interface OverviewEvent { event_type: string; created_at: string; investigation_id: string; title: string; scope: string | null }
+export interface Overview { totals: OverviewTotals; recent: OverviewItem[]; activity: OverviewEvent[] }
+const TOTAL_KEYS = ['investigations', 'sources', 'sources_read', 'passages', 'cited_findings', 'reports'] as const
+function overviewItem(value: unknown): value is OverviewItem {
+  return record(value) && strings(value, ['id', 'title', 'question', 'updated_at']) && ['sources', 'sources_read', 'plan_steps', 'cited_findings'].every(key => Number.isInteger(value[key])) && (value.report_version === null || Number.isInteger(value.report_version))
+}
+function overviewEvent(value: unknown): value is OverviewEvent { return record(value) && strings(value, ['event_type', 'created_at', 'investigation_id', 'title']) }
+function overviewShape(value: unknown): value is Overview {
+  return record(value) && record(value.totals) && TOTAL_KEYS.every(key => Number.isInteger((value.totals as Record<string, unknown>)[key])) && arrayOf(overviewItem)(value.recent) && arrayOf(overviewEvent)(value.activity)
+}
+export async function getOverview() { return checked(await request('/api/overview'), overviewShape) }

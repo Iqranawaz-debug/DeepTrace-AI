@@ -1,4 +1,4 @@
-import type { Budgets, Progress } from '../../api/client'
+import type { Budgets, GeneratedAnswer, Progress } from '../../api/client'
 
 export type PhaseState = 'Completed' | 'In progress' | 'Pending' | 'Failed' | 'Cancelled' | 'Interrupted' | 'Budget reached' | 'Not reached'
 export const PHASES = ['Plan', 'Discover', 'Read', 'Check', 'Report'] as const
@@ -51,4 +51,21 @@ export function locateQuote(passage: string, quote: string | null): [number, num
   const pattern = quote.trim().split(/\s+/).map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+')
   const found = new RegExp(pattern, 'u').exec(passage)
   return found ? [found.index, found.index + found[0].length] : null
+}
+
+export interface Position { claim: number; cite: number }
+
+/** Where ?evidence= (and optionally ?finding=) points inside the latest generated answer. */
+export function resolvePosition(answer: GeneratedAnswer | null, evidence: string | null, finding: string | null): Position | undefined {
+  if (!evidence || !answer) return undefined
+  const preferred = answer.claims.findIndex(claim => String(claim.ordinal) === finding)
+  if (preferred >= 0) {
+    const cite = answer.claims[preferred].citations.findIndex(citation => citation.passage_id === evidence)
+    if (cite >= 0) return { claim: preferred, cite }
+  }
+  for (const [claim, item] of answer.claims.entries()) {
+    const cite = item.citations.findIndex(citation => citation.passage_id === evidence)
+    if (cite >= 0) return { claim, cite }
+  }
+  return undefined
 }

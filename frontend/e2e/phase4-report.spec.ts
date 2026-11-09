@@ -17,7 +17,8 @@ test('evidence review, cited draft and immutable report export stay local and tr
   await page.getByLabel(/^Title/).fill('Report browser study')
   await page.getByLabel(/^Main research question/).fill('Can a report keep exact citations?')
   await page.getByRole('button', { name: 'Create investigation' }).click()
-  await expect(page.getByRole('heading', { name: 'Evidence workspace' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Evidence' }).click()
+  await expect(page.getByRole('heading', { name: 'Collection and saved URLs' })).toBeVisible()
 
   // A saved URL is a lead only: it is never fetched and is labelled as not retrieved.
   await page.getByLabel(/^URL/).fill('https://example.org/read-later')
@@ -33,15 +34,16 @@ test('evidence review, cited draft and immutable report export stay local and tr
   await page.getByRole('button', { name: 'Collect synthetic evidence' }).click()
   await expect(page.getByText('SIMULATED · completed', { exact: true })).toBeVisible({ timeout: 20000 })
 
-  await page.getByRole('navigation', { name: 'Investigation' }).getByRole('link', { name: 'Report' }).click()
-  await expect(page.getByRole('heading', { name: 'Evidence review and report' })).toBeVisible()
-  await expect(page.getByText(/Simulated evidence\./)).toBeVisible()
 
   const review = page.getByRole('form', { name: 'Add review for P-0001' })
   await review.getByLabel('My classification').selectOption('supports')
   await review.getByLabel(/^My note/).fill('My own judgment, not verified.')
   await review.getByRole('button', { name: 'Add review' }).click()
   await expect(page.getByRole('form', { name: 'Review: P-0001 for Can a report keep exact citations?' }).getByText('Saved · revision 1')).toBeVisible()
+
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Report' }).click()
+  await expect(page.getByRole('heading', { name: 'Report', level: 2, exact: true })).toBeVisible()
+  await expect(page.getByText(/Simulated evidence\./)).toBeVisible()
 
   await page.getByRole('button', { name: 'Add claim' }).click()
   await page.getByLabel(/^Claim text 1/).fill('The fixture passage exists.')

@@ -199,3 +199,26 @@ def test_model_timeout_is_not_retried_but_rate_limits_are(make, monkeypatch):  #
     c.app.state.gateway.llm_provider = busy
     run = terminal(c, inv, c.post(url, json={"expected_revision": 0}).json()["id"])
     assert run["status"] == "completed" and len(busy.prompts) == 2
+
+
+def test_overview_reports_real_counts_and_activity(make):  # noqa: F811
+    c = make(search_provider=ScriptedSearch())
+    empty = c.get("/api/overview").json()
+    assert empty["totals"] == {"investigations": 0, "sources": 0, "sources_read": 0,
+                               "passages": 0, "cited_findings": 0, "reports": 0}  # fmt: skip
+    assert empty["recent"] == [] and empty["activity"] == []
+    inv, archived = investigation(c), investigation(c)
+    research(c, inv, plan_steps(c, inv, 1))
+    c.post(f"/api/investigations/{archived}/archive", json={"value": True})
+    data = c.get("/api/overview").json()
+    answer = c.get(f"/api/investigations/{inv}/generated-answer").json()["answer"]
+    cited = sum(claim["evidence_state"] == "cited" for claim in answer["claims"])
+    assert data["totals"]["investigations"] == 2
+    assert data["totals"]["cited_findings"] == cited > 0
+    assert data["totals"]["reports"] == 1 and data["totals"]["sources_read"] >= 1
+    assert [r["id"] for r in data["recent"]] == [inv]  # Archived work is not "continue" work.
+    card = data["recent"][0]
+    assert (card["lifecycle"], card["plan_steps"], card["report_version"]) == ("Completed", 1, 1)
+    assert card["cited_findings"] == cited
+    assert data["activity"][0]["event_type"] == "completed"
+    assert all(item["investigation_id"] == inv for item in data["activity"])

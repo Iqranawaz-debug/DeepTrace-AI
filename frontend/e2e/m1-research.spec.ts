@@ -19,8 +19,10 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
   await page.getByLabel(/^Title/).fill('M1 browser study')
   await page.getByLabel(/^Main research question/).fill('How do synthetic fixtures behave in a bounded research run?')
   await page.getByRole('button', { name: 'Create investigation' }).click()
-  await expect(page.getByRole('heading', { name: 'Research', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'M1 browser study', level: 1 })).toBeVisible()
   await expect(page.getByText(/Nothing leaves this computer/)).toBeVisible()
+  await expect(page.getByRole('region', { name: 'Research mode' })).toContainText('Mock / offline workspace')
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Evidence' }).click()
 
   const consent = page.getByRole('button', { name: 'Enable synthetic collection' })
   await expect(consent.or(page.getByRole('button', { name: 'Revoke fixture permission' }))).toBeVisible()
@@ -28,6 +30,7 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
     await page.getByRole('checkbox', { name: /synthetic demonstration/ }).check()
     await consent.click()
   }
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Plan' }).click()
 
   // Plan: generated, then shown only when the user chooses (unsaved edits are never replaced).
   await page.getByRole('button', { name: 'Generate plan' }).click()
@@ -36,34 +39,38 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
   await expect(page.getByLabel(/^Sub-question 3/)).toBeVisible()
 
   // Limits are visible and bounded before anything runs.
+  await page.getByRole('button', { name: 'Run settings' }).click()
+  await expect(page.getByText('Limits are ceilings, not targets.', { exact: false })).toBeVisible()
   await expect(page.getByLabel(/^Pages fetched/)).toHaveAttribute('max', '15')
+  await page.getByRole('button', { name: 'Done' }).click()
   await page.getByRole('button', { name: 'Start research' }).click()
-  await expect(page.getByText('Research completed. Review the report and the limitations.')).toBeVisible({ timeout: 60000 })
-  await expect(page.getByText(/SIMULATED · Completed/)).toBeVisible()
+  await expect(page.getByText('Research completed. Review the findings, the report and the limitations.')).toBeVisible({ timeout: 60000 })
+  await expect(page.getByText(/SIMULATED · Completed/).first()).toBeVisible()
   await expect(page.getByRole('list', { name: 'Research progress' }).getByRole('listitem')).toHaveText([/Plan.*Completed/, /Discover.*Completed/, /Read.*Completed/, /Check.*Completed/, /Report.*Completed/])
   await page.getByText('Activity', { exact: true }).click()
   await expect(page.getByText(/Searched: .*results\)/).first()).toBeVisible()
-  await expect(page.getByText('Limits are ceilings, not targets.', { exact: false })).toBeVisible()
 
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: /^Findings/ }).click()
   const findings = page.getByRole('region', { name: 'Findings' })
   await expect(findings.locator('.badge-cited').first()).toHaveText('Cited')
   await expect(findings.locator('.badge-missing').first()).toHaveText('Not established')
   await findings.getByRole('button', { name: /^Open evidence P-/ }).first().click()
-  const evidence = page.getByRole('dialog')
-  await expect(evidence.getByText("These checks confirm the reference and wording. They don't confirm the claim is true.")).toBeVisible()
+  const evidence = page.getByRole('complementary', { name: /^Evidence P-/ })
+  await expect(evidence.getByText(/They don't confirm the claim is true\./)).toBeVisible()
   await expect(evidence.getByText('Belongs to this investigation')).toBeVisible()
   await expect(evidence.locator('mark')).toHaveText(/SIMULATED|Fixture|Simulated/)
   expect(page.url()).toContain('evidence=')
   await expect(evidence.getByRole('link', { name: /Open original/ })).toHaveAttribute('rel', 'noopener noreferrer')
   // A refresh restores the open evidence, and Back closes it before leaving the page.
   await page.reload()
-  await expect(page.getByRole('dialog')).toBeVisible()
-  await expect(page.getByRole('dialog').getByRole('heading', { name: /^Evidence P-/ })).toBeFocused()
+  await expect(evidence).toBeVisible()
+  await expect(evidence.getByRole('heading', { name: /^Evidence P-/ })).toBeFocused()
   expect(await serious()).toEqual([])
   await page.keyboard.press('Escape')
   await expect(evidence).not.toBeVisible()
   expect(page.url()).not.toContain('evidence=')
 
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Report' }).click()
   const article = page.getByRole('article', { name: 'Research report version 1' })
   const markdown = await article.locator('pre').innerText()
   for (const expected of ['AI-generated research aid. Verify important findings using original sources.', 'SIMULATED RESEARCH', '## Findings', '## Supporting Evidence', '## Conflicting or Missing Evidence', '## Limitations', '## Methodology', '## References', 'synthesize-v2']) expect(markdown).toContain(expected)
@@ -82,12 +89,13 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
 
   // Restart-free persistence through reload.
   await page.reload()
-  await expect(page.getByText(/SIMULATED · Completed/)).toBeVisible()
+  await expect(page.getByText(/SIMULATED · Completed/).first()).toBeVisible()
   await expect(page.getByRole('article', { name: 'Research report version 1' })).toBeVisible()
 
   // Sources show honest statuses, including what could not be read.
-  await page.getByRole('navigation', { name: 'Investigation' }).getByRole('link', { name: 'Sources' }).click()
-  await expect(page.getByRole('heading', { name: 'Sources', level: 1 })).toBeFocused()
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Sources' }).click()
+  await expect(page.getByRole('heading', { name: 'Sources', level: 2 })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Sources' })).toBeFocused()
   await expect(page.getByText(/\d+ fetched/)).toBeVisible()
   await page.getByRole('button', { name: /^Show details/ }).first().click()
   await expect(page.getByText('Author', { exact: true })).toBeVisible()
@@ -95,11 +103,16 @@ test('M1 journey: plan, bounded mock research, cited answer, report, sources, de
   expect(await serious()).toEqual([])
 
   // The Report tab also reaches the saved generated report.
-  await page.getByRole('navigation', { name: 'Investigation' }).getByRole('link', { name: 'Report' }).click()
+  await page.getByRole('navigation', { name: 'Investigation sections' }).getByRole('link', { name: 'Report' }).click()
   await expect(page.getByRole('article', { name: 'Research report version 1' })).toBeVisible()
 
-  // Dashboard reflects real state.
+  // The Command Center counts real saved work, and the library reflects real state.
   await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Overview', level: 1 })).toBeFocused()
+  await expect(page.getByRole('list', { name: 'Progress for M1 browser study' })).toContainText('Report v1')
+  await expect(page.getByRole('list', { name: 'Totals' })).toContainText(/Investigations[1-9]\d*Sources read/)
+  expect(await serious()).toEqual([])
+  await page.goto('/investigations')
   const card = page.getByRole('listitem').filter({ hasText: 'M1 browser study' })
   await expect(card.getByText('Completed', { exact: true })).toBeVisible()
   await expect(card.getByText(/[1-9]\d* source\(s\)/)).toBeVisible()

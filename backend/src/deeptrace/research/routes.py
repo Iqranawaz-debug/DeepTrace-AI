@@ -204,6 +204,11 @@ def start_research(
     return {"id": str(data.id)}
 
 
+@router.get("/overview")
+def overview(repo: Repo) -> dict[str, Any]:
+    return repo.overview()
+
+
 @router.get("/runs/{identifier}/progress")
 def progress(identifier: UUID, investigation_id: UUID, repo: Repo) -> dict[str, Any]:
     return repo.progress(str(identifier), str(investigation_id))

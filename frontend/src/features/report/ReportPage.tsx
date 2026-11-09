@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
-  ANSWER_FIELDS, ApiError, createReport, getAnswer, getInvestigation, getPlan, getReport, listEvidencePassages, listNotes, listReports, reportDownloadUrl, saveAnswer, saveNote,
+  ANSWER_FIELDS, ApiError, createReport, getAnswer, getReport, listEvidencePassages, listNotes, listReports, reportDownloadUrl, saveAnswer, saveNote,
   type Answer, type AnswerField, type Citation, type ClaimDraft, type ClaimType, type EvidenceNote, type EvidencePassage, type Investigation, type Plan, type Relation, type ReportSummary, type ReportVersion, type Stance,
 } from '../../api/client'
 import { useUnsaved } from '../investigations/InvestigationForm'
-import { InvestigationNav } from '../investigations/InvestigationNav'
-import { GeneratedResults } from '../research/GeneratedResults'
+import { GeneratedReportViewer } from '../research/GeneratedResults'
+import { useWorkspace } from '../workspace/workspace'
 
 const STANCES: Record<Stance, string> = { unreviewed: 'Not yet reviewed', supports: 'Supports (my judgment)', contradicts: 'Contradicts (my judgment)', context: 'Context only', insufficient: 'Insufficient for this question' }
 const RELATIONS: Record<Relation, string> = { supports: 'Supports the claim', contradicts: 'Contradicts the claim', context: 'Context' }
@@ -17,37 +17,50 @@ const message = (error: unknown) => error instanceof ApiError ? [error.message, 
 const fieldsOf = (answer: Answer) => Object.fromEntries(ANSWER_FIELDS.map(key => [key, answer[key] ?? ''])) as Record<AnswerField, string>
 const draftsOf = (answer: Answer): ClaimDraft[] => answer.claims.map(claim => ({ id: claim.id, claim_type: claim.claim_type, claim_text: claim.claim_text, citations: claim.citations.map(c => ({ passage_id: c.passage_id, relation: c.relation, quoted_text: c.quoted_text })) }))
 
-export function ReportPage() {
-  const { id = '' } = useParams()
-  const [data, setData] = useState<{ investigation: Investigation; plan: Plan; passages: EvidencePassage[]; notes: EvidenceNote[]; answer: Answer }>()
+async function loadPassages(id: string) {
+  // Bounded: at most four pages of 50 passages are offered for review and citation.
+  const passages: EvidencePassage[] = []
+  for (let offset = 0; offset < 200; offset += 50) { const page = await listEvidencePassages(id, offset); passages.push(...page); if (page.length < 50) break }
+  return passages
+}
+
+export function ReportTab() {
+  const { id, research } = useWorkspace()
+  const [data, setData] = useState<{ passages: EvidencePassage[]; answer: Answer }>()
   const [error, setError] = useState(false)
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     let active = true
-    async function load() {
-      // Bounded: at most four pages of 50 passages are offered for review and citation.
-      const passages: EvidencePassage[] = []
-      for (let offset = 0; offset < 200; offset += 50) { const page = await listEvidencePassages(id, offset); passages.push(...page); if (page.length < 50) break }
-      const [investigation, plan, notes, answer] = await Promise.all([getInvestigation(id), getPlan(id), listNotes(id), getAnswer(id)])
-      return { investigation, plan, passages, notes, answer }
-    }
-    load().then(result => { if (active) setData(result) }).catch(() => { if (active) setError(true) })
+    Promise.all([loadPassages(id), getAnswer(id)]).then(([passages, answer]) => { if (active) setData({ passages, answer }) }).catch(() => { if (active) setError(true) })
     return () => { active = false }
-  }, [id, attempt])
+  }, [id, attempt, research.resultKey])
   return <>
-    <div className="page-intro"><p className="eyebrow">Report · User-authored · Stored on this computer</p><h1 tabIndex={-1}>Evidence review and report</h1>
-      <p>Research runs save their AI-generated findings and report here too. In your own draft below, you write every claim and classification. DeepTrace checks only that each citation points to a saved passage in this investigation and that quotations match the saved text. It does not judge whether a passage supports a claim, and no AI model touches your draft.</p></div>
-    <InvestigationNav id={id} current="report" />
-    {error ? <div role="alert" className="error-state">Could not open this report workspace. Saved work is unchanged.<button className="button secondary" onClick={() => { setError(false); setAttempt(attempt + 1) }}>Retry report</button></div>
-      : !data ? <p role="status">Loading report workspace…</p> : <>
-        <section className="settings-card"><h2>{data.investigation.title}</h2><p>{data.investigation.question}</p>
-          {data.passages.some(p => p.source_origin === 'mock') && <p className="mode-note"><strong>Simulated evidence.</strong> Passages come from synthetic fixtures and support no conclusions about the world.</p>}</section>
-        <section className="settings-card" aria-label="Generated research"><h2>Generated research</h2><GeneratedResults investigationId={id} /><p>A report is created when a research run completes.</p></section>
-        <EvidenceReview investigationId={id} data={data} onNotes={notes => setData({ ...data, notes })} />
+    <div className="panel-intro"><h2>Report</h2>
+      <p>Research runs save an AI-generated report here. In your own draft, you write every claim and classification. DeepTrace checks only that each citation points to a saved passage in this investigation and that quotations match the saved text. It does not judge whether a passage supports a claim, and no AI model touches your draft.</p></div>
+    <section className="card" aria-labelledby="generated-report-title"><div className="card-head"><h2 id="generated-report-title">Research report</h2><span className="chip">AI-generated</span></div>
+      <GeneratedReportViewer key={research.resultKey} investigationId={id} /></section>
+    {error ? <div role="alert" className="error-state">Could not open your report draft. Saved work is unchanged.<button className="button secondary" onClick={() => { setError(false); setAttempt(attempt + 1) }}>Retry report</button></div>
+      : !data ? <p role="status">Loading report draft…</p> : <>
+        {data.passages.some(p => p.source_origin === 'mock') && <p className="mode-note"><strong>Simulated evidence.</strong> Passages come from synthetic fixtures and support no conclusions about the world.</p>}
         <DraftEditor investigationId={id} answer={data.answer} passages={data.passages} onSaved={saved => setData(current => current && { ...current, answer: saved })} />
         <Versions investigationId={id} answer={data.answer} />
       </>}
   </>
+}
+
+export function EvidenceReviewSection({ refresh = 0 }: { refresh?: number }) {
+  const { id, investigation, plan, research } = useWorkspace()
+  const [data, setData] = useState<{ passages: EvidencePassage[]; notes: EvidenceNote[] }>()
+  const [error, setError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    let active = true
+    Promise.all([loadPassages(id), listNotes(id)]).then(([passages, notes]) => { if (active) setData({ passages, notes }) }).catch(() => { if (active) setError(true) })
+    return () => { active = false }
+  }, [id, attempt, research.resultKey, refresh])
+  if (error) return <div role="alert" className="error-state">Could not load saved passages. Saved work is unchanged.<button className="button secondary" onClick={() => { setError(false); setAttempt(attempt + 1) }}>Retry evidence review</button></div>
+  if (!data) return <p role="status">Loading evidence review…</p>
+  return <EvidenceReview investigationId={id} data={{ investigation, plan, ...data }} onNotes={notes => setData({ ...data, notes })} />
 }
 
 function PassageButton({ citation }: { citation: Citation }) {
@@ -62,9 +75,9 @@ function PassageButton({ citation }: { citation: Citation }) {
 function EvidenceReview({ investigationId, data, onNotes }: { investigationId: string; data: { investigation: Investigation; plan: Plan; passages: EvidencePassage[]; notes: EvidenceNote[] }; onNotes: (notes: EvidenceNote[]) => void }) {
   const targets: [string, string][] = [['question', `Main question: ${data.investigation.question}`], ...data.plan.items.map((item, index): [string, string] => [item.id, `Step ${index + 1}: ${item.sub_question}`])]
   const unreviewed = data.passages.filter(p => !data.notes.some(n => n.passage_id === p.id && n.stance !== 'unreviewed')).length
-  return <section className="settings-card" aria-labelledby="review-title"><h2 id="review-title">Evidence review</h2>
+  return <section className="card" aria-labelledby="review-title"><h2 id="review-title">Evidence review</h2>
     <p>Link saved passages to the question or plan steps and record your judgment. Classifications are yours, not verified facts. {unreviewed} of {data.passages.length} passages have no review yet.</p>
-    {!data.passages.length && <p>No usable passages are saved. Collect sources in the workspace first; saved URLs are not evidence.</p>}
+    {!data.passages.length && <p>No usable passages are saved. Run research or collect sources first; saved URLs are not evidence.</p>}
     <ol className="evidence-list">{data.passages.map(passage => <li key={passage.id}><h3>{passage.display_id} · {passage.source_title || 'Untitled source'}</h3>
       <p className="record-dates">{passage.source_origin === 'mock' ? 'SIMULATED · ' : ''}{passage.source_status} · characters {passage.start_offset}–{passage.end_offset}</p>
       <blockquote>{passage.text}</blockquote>
@@ -121,7 +134,7 @@ function DraftEditor({ investigationId, answer, passages, onSaved }: { investiga
       clearDirty(); setFields(fieldsOf(result)); setClaims(draftsOf(result)); onSaved(result); setAnnouncement(`Draft saved · revision ${result.revision_no}`)
     } catch (failure) { setError(message(failure)) } finally { setBusy(false) }
   }
-  return <form className="settings-card" onSubmit={submit} aria-labelledby="draft-title"><h2 id="draft-title">Report draft</h2>
+  return <form className="card" onSubmit={submit} aria-labelledby="draft-title"><h2 id="draft-title">Report draft</h2>
     <p>Everything here is your own text. A finding counts as <strong>Cited</strong> only when it has at least one valid citation marked as supporting; otherwise it is shown as <strong>Not established</strong>. Invalid citations are rejected, never silently removed.</p>
     <fieldset disabled={busy}><legend className="sr-only">Report sections</legend>
       {ANSWER_FIELDS.map(key => <label key={key} className="field">{FIELD_LABELS[key][0]}<textarea rows={3} maxLength={FIELD_LABELS[key][1]} value={fields[key]} onChange={e => setFields({ ...fields, [key]: e.target.value })} /><span>Up to {FIELD_LABELS[key][1].toLocaleString()} characters</span></label>)}
@@ -170,7 +183,7 @@ function Versions({ investigationId, answer }: { investigationId: string; answer
     try { const created = await createReport(investigationId, answer.revision_no); await refresh(); setParams({ version: String(created.version_no) }) }
     catch (failure) { setError(message(failure)) } finally { setBusy(false) }
   }
-  return <section className="settings-card" aria-labelledby="versions-title"><h2 id="versions-title">Report versions</h2>
+  return <section className="card" aria-labelledby="versions-title"><h2 id="versions-title">Report versions</h2>
       <p>Creating a version re-checks every citation and saves an immutable Markdown snapshot of the saved draft. Saving does not make a report verified or complete.</p>
       <div className="actions"><button className="button primary" disabled={busy || answer.revision_no === 0} onClick={() => void create()}>{busy ? 'Checking references…' : 'Create report version'}</button>{answer.revision_no === 0 && <span>Save the draft first.</span>}</div>
       {error && <p role="alert" className="error-state">{error}</p>}

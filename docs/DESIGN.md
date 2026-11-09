@@ -536,47 +536,48 @@ A reduced-motion user must lose **no information**; every animated state has a t
 
 ### 6.1 Shell anatomy
 
+Redesigned 2026-11-09 (owner-approved): a calm, premium research workspace in the Linear/Notion family, keeping the Forest & Teal tokens (§3) and the IBM Plex / Source Serif typefaces (§5).
+
 ```
-┌────────────┬──────────────────────────────────────────────────────────┐
-│            │  Contextual header (breadcrumb · title · status · actions) │
-│  Sidebar   ├──────────────────────────────────────────────────────────┤
-│ (Deep      │  Investigation tabs (Workspace · Sources · [Compare] · Report)
-│  Forest)   ├───────────────────────────────┬──────────────┬───────────┤
-│            │  Primary content workspace    │ Secondary    │ Evidence  │
-│ Dashboard  │  (reading column ≤ 720 px)    │ panel (opt.) │ panel     │
-│ Documents* │                               │ 320 px       │ (docked)  │
-│ Settings   │                               │              │ 400 px    │
-└────────────┴───────────────────────────────┴──────────────┴───────────┘
-* Documents appears from M2.   Compare tab appears from M3 (if promoted).
+┌────────────┬────────────────────────────────────────────────────────────────┐
+│ DeepTrace  │  Header: Workspace / {page}                [Mode chip] v0.1.0   │
+│ [+ New]    ├────────────────────────────────────────────────────────────────┤
+│ RESEARCH   │  Global pages: page head (eyebrow · h1 · subtitle · action)     │
+│  Overview  │  Investigation pages: the three-panel workspace (§6.3, §8.3)   │
+│  Investig. │                                                                 │
+│ PREFERENCES│                                                                 │
+│  Settings  │                                                                 │
+│ ● Local    │                                                                 │
+│ « Collapse │                                                                 │
+└────────────┴────────────────────────────────────────────────────────────────┘
 ```
 
 | Region | Specification |
 |---|---|
-| **Sidebar** | Deep Forest surface. Wordmark/tagline "Research you can trace." at top (tagline hidden in rail). Global navigation list. Collapse toggle at bottom. Collapsed state persisted locally. Selected item: Pine fill, Text Primary label, 3 px Mint left indicator, `aria-current="page"`. Hover: Raised fill. |
-| **Contextual header** | On global screens: page title + primary action. On investigation screens: breadcrumb (`Dashboard › Investigation title`), title (truncated with tooltip), status badge, run actions (Cancel while running). Sticky. |
-| **Investigation tabs** | Rendered as a `<nav>` of links (see §7.3) directly below the header; sticky beneath it. Selected tab has a 2 px Mint underline plus Text Primary label; unselected use Text Secondary. |
-| **Primary content workspace** | Forest Black canvas. The answer or report sits in a reading column capped at 720 px, left-aligned with a 24 px gutter (centered only on wide viewports ≥ 1600 px). |
-| **Secondary information panel** | Optional; holds Plan, Sources, Activity, Budget (Radix Tabs). Docked on the right when space allows, an inline accordion otherwise (§6.3). |
-| **Evidence drawer** | Opened by citation chips. Docked panel on wide desktop, overlay drawer on tablet and narrow desktop, full-height sheet on mobile (§6.3, §10). |
-| **Toast region** | Bottom-right (desktop) / bottom-center (mobile), above content, `role="status"`; max 3 stacked. |
-| **Banner region** | Between header/tabs and content; used for offline (ERR-15), storage warning (NFR-X1), budget reached, interrupted run. One banner per concern, dismissible only if non-critical. |
+| **Sidebar** | Sunken surface, 248 px (64 px rail when collapsed). Wordmark and tagline "Research you can trace." A full-width primary **New investigation** button. Labelled groups **Research** (Overview, Investigations) and **Preferences** (Settings), each a `role="group"` named by its visible section label. Only built destinations appear; nothing is listed for future milestones. Selected item: Selected fill, Text Primary label, 3 px Mint left indicator, `aria-current="page"`. "Local workspace" note and the collapse toggle at the bottom. |
+| **Header** | Sticky, 56 px. Left: breadcrumb `Workspace / {page}`. Right: the **research mode chip** and the version. |
+| **Mode chip** | Replaces the old full-width mode banner. A pill that is always visible: "Mock / offline workspace" (flask icon, Mint) or "Live research (free tier)" (radio icon, Warning border and text). It is a focusable `role="region"` named "Research mode"; its explanation ("Live research and external providers are disabled." / "Approved queries, passages and page requests leave this computer.") is in a tooltip **and** in screen-reader text, so the tooltip never holds the only copy. |
+| **Page head** | Global pages: uppercase eyebrow, `h1`, one-line subtitle, primary action on the right (wraps below on narrow widths). |
+| **Cards** | Surface fill, 1 px decorative border, 10 px radius, 20 px padding. Card heads put the title left and a status chip right. |
+| **Chips** | 999 px radius pills with text, never colour alone: neutral (Raised), success and warning (coloured text and outline on transparent). |
+| **States** | Skeletons that match the final layout (pulse animation, removed under reduced motion), dashed-border empty states with one action, danger-tinted error blocks with what failed, what was kept and a safe retry. |
 
 ### 6.2 Landmarks
 
-`header` (banner), `nav` (sidebar, labeled "Main"), `nav` (investigation tabs, labeled "Investigation"), `main` (one per page), `aside` (secondary panel, labeled "Investigation details"), `aside` (docked evidence panel, labeled "Evidence"), `footer` not used in-app. A "Skip to main content" link is the first focusable element and becomes visible on focus.
+`header` (banner), `nav` "Main" (sidebar, with groups "Research" and "Preferences"), `main` (one per page), and on investigation pages: `nav` "Investigation sections" (tabs), `aside` "Investigation outline" (left panel) and `aside` "Evidence inspector" / "Evidence P-…" (right panel). A "Skip to main content" link is the first focusable element and becomes visible on focus.
 
 ### 6.3 Layout by breakpoint
 
-| Breakpoint | Range | Sidebar | Primary | Secondary panel | Evidence |
-|---|---|---|---|---|---|
-| **Mobile** | 360–767 px | Hidden; top bar with menu button opens navigation dialog | Single column, 16 px margins | Collapsible accordion sections under the tracker | Full-height sheet (modal) |
-| **Tablet** | 768–1023 px | 64 px icon rail (labels in tooltips and `aria-label`) | Fluid reading column ≤ 720 px | Collapsible accordion sections, or right column only if width allows ≥ 560 px for primary | Overlay drawer (modal) |
-| **Desktop** | 1024–1279 px | 240 px expanded (user may collapse to 64 px) | Fluid, ≥ 560 px | Inline accordion by default; docked 320 px column **only** when the sidebar is collapsed to the 64 px rail | Overlay drawer (modal) |
-| **Wide desktop** | ≥ 1280 px | 240 px expanded | 560–760 px reading column | Docked 320 px column when evidence is closed | Docked 400 px panel; it **replaces** the docked secondary panel while open and the secondary panel returns on close |
+| Breakpoint | Range | Sidebar | Investigation workspace |
+|---|---|---|---|
+| **Mobile** | 360–767 px | Hidden; the header menu button opens the navigation dialog (§6.5) | One column: header, outline (stacked), tabs, panel. The inspector opens as a full-height overlay from the right when a citation is chosen. |
+| **Tablet** | 768–1023 px | 64 px icon rail (labels in tooltips and `aria-label`) | One column, outline sections side by side above the tabs; inspector as an overlay. |
+| **Desktop** | 1024–1279 px | 248 px (user may collapse to 64 px) | Two columns: outline 240 px + centre. The empty inspector is hidden; a chosen citation opens it as a 420 px overlay drawer with a shadow. |
+| **Wide desktop** | ≥ 1280 px | 248 px | Three columns: outline 264 px · centre (fluid, content capped at 860 px) · inspector 360 px, always visible. With nothing selected the inspector shows how to use it. |
 
-Width arithmetic (to prove the design fits): at 1280 px with a 240 px sidebar and a 400 px docked evidence panel the primary region is 640 px (≥ 560 ✅). At 1024 px with a 240 px sidebar the primary region is 784 px; adding a 320 px secondary column would leave 464 px (< 560 ❌), hence the inline accordion rule. With the 64 px rail at 1024 px the primary region is 960 px, and a 320 px secondary column leaves 640 px ✅.
+Width arithmetic: at 1280 px with a 248 px sidebar, 264 + 360 px side panels leave 408 px for the centre panel plus padding. That is enough for findings and the plan editor; long Markdown previews scroll inside their own container.
 
-**No document-level horizontal overflow** at any width ≥ 360 px (UX-10). Tables, code, long URLs and Markdown tables scroll inside their own `overflow-x: auto` container, with `min-width: 0` on flex/grid children and `overflow-wrap: anywhere` on URLs and passage IDs.
+**No document-level horizontal overflow** at any width ≥ 360 px (UX-10). Tables, code, long URLs and Markdown scroll inside their own container, with `min-width: 0` on grid children and `overflow-wrap: anywhere` on URLs and passage IDs.
 
 ### 6.4 Sidebar collapse behavior
 
@@ -595,49 +596,44 @@ Menu button (44 × 44 px) in a 56 px top bar opens a Radix Dialog from the left:
 
 ### 7.1 Global navigation
 
-| Item | Icon | Route | Milestone | Notes |
+| Group | Item | Icon | Route | Notes |
 |---|---|---|---|---|
-| Dashboard | `layout-dashboard` | `/` | M1 (M0 shell) | Home |
-| Documents | `files` | `/documents` | **M2** | Not rendered before M2 |
-| Settings | `settings` | `/settings` | M0 shell, M1 functional | |
+| — | New investigation (primary button) | `plus` | `/new` | Top of the sidebar; also on the Overview and the library |
+| Research | Overview | `layout-dashboard` | `/` | Command Center (§8.1) |
+| Research | Investigations | `folder-search` | `/investigations` | Library: search and pagination (§8.1b); stays highlighted inside an investigation |
+| Preferences | Settings | `settings` | `/settings` | |
 
-A primary **New investigation** button sits at the top of the sidebar content area (and in the Dashboard header), route `/new`. The wordmark links to `/`.
+Documents, a knowledge graph or a global source library are **not** listed until they exist. The wordmark links to `/`.
 
 ### 7.2 Investigation navigation
 
-| Tab | Route | Milestone | Notes |
-|---|---|---|---|
-| Workspace | `/investigations/:id` | M1 | Default tab |
-| Sources | `/investigations/:id/sources` | M1 | |
-| Evidence Compare | `/investigations/:id/compare` | **M3 (Should)** | Only rendered if FR-09 is included; hidden for investigations with no stance data |
-| Report | `/investigations/:id/report` | M1 | |
-
-Research Plan is a **panel inside the Workspace**, not a route.
+| Tab | Route | Content |
+|---|---|---|
+| Plan | `/investigations/:id` | Starting point (Generate plan), plan editor, latest run and activity, Manage |
+| Findings | `/investigations/:id/findings` | Latest generated answer with citation chips; the tab shows the finding count |
+| Sources | `/investigations/:id/sources` | Every source considered, with honest statuses (URL kept from M1) |
+| Evidence | `/investigations/:id/evidence` | Evidence review (your classifications), collection and saved URLs |
+| Report | `/investigations/:id/report` | Generated report versions, your draft, your report versions (URL kept from M1) |
 
 ### 7.3 Tab semantics
 
-Investigation tabs are **navigation links**, not ARIA `tablist` tabs, because each destination is a different URL: render `<nav aria-label="Investigation">` containing links with `aria-current="page"` on the active link. The in-page secondary panel (Plan / Sources / Activity / Budget) **is** a true tabs widget (Radix Tabs) with roving focus and arrow-key navigation.
+Investigation tabs are **navigation links**, not ARIA `tablist` tabs, because each destination is a different URL: `<nav aria-label="Investigation sections">` containing links with `aria-current="page"` on the active link. Switching tabs inside one investigation keeps focus on the chosen tab link and keeps the shared research state (polling, budgets, the latest answer); opening a different investigation moves focus to its `h1`.
 
 ### 7.4 Route table
 
-| Route | Screen | Milestone | Notes |
-|---|---|---|---|
-| `/` | Dashboard | M1 | |
-| `/new` | New Investigation | M1 | Redirects to workspace after creation |
-| `/investigations/:id` | Research Workspace | M1 | Evidence drawer addressed by `?evidence=<passageId>` |
-| `/investigations/:id/sources` | Sources Explorer | M1 | |
-| `/investigations/:id/compare` | Evidence Comparison | M3 | |
-| `/investigations/:id/report` | Report Viewer | M1 | `?version=<n>` selects a version |
-| `/documents` | Document Library | M2 | |
-| `/settings` | Settings | M1 | `#section` anchors per section |
-| `/setup` | First-Run Setup Wizard | M1 (disclosure/credentials needed by M1 run) | Auto-redirect on first launch; reopenable from Settings |
-| `*` | Not-found page | M1 | "This page doesn't exist" + link to Dashboard |
+| Route | Screen | Notes |
+|---|---|---|
+| `/` | Overview (Command Center) | |
+| `/investigations` | Investigations library | Delete returns here |
+| `/new` | New Investigation | Goes to the workspace after creation |
+| `/investigations/:id` (+ `/findings`, `/sources`, `/evidence`, `/report`) | Investigation workspace | `?evidence=<passageId>&finding=<n>` opens the evidence inspector |
+| `/settings` | Settings | |
+| `/setup` | First-Run Setup | |
+| `*` | Not-found page | "This page doesn't exist" + link to the Overview |
 
-- The **Evidence Drawer is not a route**. Its open state is mirrored in the `evidence` query parameter so a refresh or a shared local link restores it; closing removes the parameter. If the passage cannot be resolved (for example removed), the drawer opens in its "Source removed / not found" state (§8.6).
-- Routing library, route guards and URL helpers are deferred to `ARCHITECTURE.md` (D-04); this table is the contract the router must satisfy.
-- **First-run guard:** if provider disclosure has not been acknowledged or no credentials exist, `/new` and "Start research" lead to `/setup` (UX-08). Browsing saved investigations is never blocked.
-- **Unsaved input:** `/new` and Settings forms warn before navigating away with unsaved changes.
-- Document `<title>` pattern: `{Page} — {Investigation title} — DeepTrace AI`; route changes move focus to the page `h1` and announce the new title through the polite live region.
+- The **evidence inspector is not a route**. Its open state is mirrored in the `evidence` query parameter (and `finding`, which picks the citing finding when several cite one passage) so refresh, Back and local links restore it; closing removes both. An unknown passage shows "This passage isn't available in this investigation."
+- **Unsaved input:** plan, details and draft forms warn before navigating to another page with unsaved changes.
+- Document `<title>` pattern: `{Page} — DeepTrace AI`.
 
 ---
 
@@ -697,44 +693,27 @@ Badge = icon + text + tinted background (§4.4), 12 px caption, 4 px radius. Tex
 
 ---
 
-### 8.1 Dashboard
+### 8.1 Overview (Command Center)
 
 | | |
 |---|---|
-| **Purpose** | Start research; list, reopen, and manage investigations; see status and history at a glance. |
-| **Route / milestone** | `/` · M1 (filtering M3 Should) |
-| **PRD IDs** | FR-01.2, FR-01.3, FR-01.5, FR-08.1, FR-08.2, FR-08.4, FR-11.3, UX-07, NFR-P1, NFR-X1, ERR-15, AC-01 |
+| **Purpose** | See what is saved, pick up where you left off, and see what recently ran. |
+| **Route** | `/` · data from the read-only `GET /api/overview` |
+| **PRD IDs** | FR-01.5, FR-08.1, FR-08.2, FR-11.3, UX-07, NFR-P1 |
 
-**Layout (desktop):** page title "Investigations" + primary "New investigation" button (right). Optional banners (storage, offline). Below: filter bar (M3), then the investigation list as a **table** (≥ 768 px) or **cards** (< 768 px).
+**Layout:** page head (eyebrow "Command Center", `h1` "Overview", subtitle "Everything below is counted from what is saved on this computer.", primary **New investigation**). Then:
 
-**Table columns (FR-08.1):** Title (link, 2-line clamp) · Status (badge) · Last updated (relative + absolute on hover/`title` and `<time datetime>`) · Sources (count) · Actions (menu). Row hover = Raised fill; row is not itself clickable except via the title link (avoids nested interactive conflicts), but the whole row's hit area extends via a stretched link pseudo-element on the title.
+1. **Totals** (`ul` named "Totals"): Investigations · Sources read ("of N considered") · Saved passages · Cited findings ("in latest answers") · Reports ("generated and your own"). Every number is a real count from SQLite.
+2. **Continue investigating:** up to four non-archived investigations, most recently updated first. Card: lifecycle chip, "Updated {relative time}", title (a stretched link to the workspace), the question (2-line clamp) and a progress row named "Progress for {title}": plan steps · "{read} of {total} sources read" · cited findings · "Report v{n}" or "No report yet". "View all" goes to the library.
+3. **Recent activity:** the last eight run events across investigations, each with its fixed event text, the run kind (Research / Plan generation / Collection), a link to the investigation and a relative time.
 
-**Card layout (mobile):** title, status badge, "Updated 2 h ago · 7 sources", actions menu button.
+**Honesty rules:** no percentages, scores, streaks or estimated progress. Nothing is shown that is not counted.
 
-**Actions per row:** Open (default), Rename, Archive/Unarchive, Delete (FR-01.3). **Resume** is not offered in M1 (FR-L2); Interrupted rows show badge + "Open to review saved evidence". Row actions live in a Radix DropdownMenu labeled "Actions for {title}".
+**States:** loading (five skeleton cards, `aria-busy`), error (danger block, "Retry overview"), empty (no investigations: the shared "No investigations yet" empty state with "Create an investigation"), all archived ("All investigations are archived" + library link), no runs ("No runs yet…").
 
-**Delete:** Radix AlertDialog (§8.9a pattern below). Body: "This permanently removes this investigation's sources, passages, answers and reports from this computer. Backups, exports and provider-side copies outside DeepTrace aren't affected." Buttons: Cancel (default focus) / "Delete investigation" (destructive). After confirm: progress state; on partial failure show what could not be removed and why (FR-01.4, SEC-23). Never claim success until verified.
+### 8.1b Investigations library
 
-**Filtering (M3, Should, FR-08.4):** search-by-title input, status select, date range select; filter state reflected in the URL query; "Clear filters". Not rendered in M1.
-
-**States**
-
-| State | Behavior |
-|---|---|
-| Loading | 6 skeleton rows |
-| Empty (no investigations) | Icon `search`, "No investigations yet", "Ask a question and DeepTrace will search, read and cite sources.", Primary "New investigation" |
-| Empty (filtered, M3) | "No investigations match these filters" + "Clear filters" |
-| Error (cannot load) | Danger banner: "Couldn't load your investigations. Nothing has been deleted. Reload the list." + Retry |
-| Storage warning (NFR-X1) | Warning banner when an investigation exceeds the configured threshold (~500 MB): "'{title}' is using {size}. You can remove sources or delete it to free space." |
-| Offline | Offline banner; list works |
-| Interrupted rows | Badge "Interrupted"; tooltip text "The app closed while this was running. Saved evidence is kept." |
-
-**Performance:** must stay responsive with 200 investigations (NFR-P1, proposed ≤ 1.5 s p90 on documented reference hardware). Render up to 200 rows without pagination; above that, paginate 50 per page (assumption, §19 DQ-12). Use `content-visibility: auto` on rows if profiling requires.
-
-**Responsive:** table → cards below 768 px; page actions wrap; no horizontal overflow.
-**Accessibility:** table uses real `<table>`, `<caption class="sr-only">Investigations</caption>`, sortable headers (M3) as buttons with `aria-sort`; row action menus keyboard-accessible; status always text+icon.
-
----
+`/investigations`: page head ("Library", `h1` "Investigations", **New investigation**), search over titles and questions on this computer, cards with title link, lifecycle chip, question, created/updated dates and source count, "Open workspace", and pagination (25 per page).
 
 ### 8.2 New Investigation
 
@@ -784,38 +763,53 @@ The most important screen. Full interaction model in §9; this section is the sc
 
 | | |
 |---|---|
-| **Purpose** | Run, observe and read a bounded investigation; inspect evidence behind each claim. |
-| **Route / milestone** | `/investigations/:id` · M1 (Resume, semantic labels, credibility signals later) |
+| **Purpose** | Run, observe and read a bounded investigation; inspect the evidence behind each finding. |
+| **Route** | `/investigations/:id` and its tabs (§7.2) |
 | **PRD IDs** | FR-01.5, FR-02.2, FR-06.1–06.7, FR-11.1–11.5, FR-L1–L5, UX-03–07, UX-10, ERR-01–07, ERR-10–13, ERR-17, AC-03, AC-11 |
 
-**Three information layers**
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Investigations / [Completed] [Sensitive]                                      │
+│ {Title h1}                     [Edit] [Run settings] [Cancel] [▶ Start research]
+├────────────────┬───────────────────────────────────────┬─────────────────────┤
+│ QUESTION       │ notices (waiting / blocked / errors)  │ Evidence P-0001  [×]│
+│ serif text     │ Plan  Findings ⁷  Sources  Evidence  Report               │
+│ PLAN · 5 STEPS │ ───────────────────────────────────── │ Source title        │
+│ 1. …           │ tab panel                             │ Open original ↗     │
+│ RESEARCH RUN   │                                       │ ▌highlighted passage│
+│ Completed      │                                       │ ✓ ✓ ✓ checks        │
+│ ✓ Plan …       │                                       │ Cited by            │
+└────────────────┴───────────────────────────────────────┴─────────────────────┘
+```
 
-| Layer | Content | Visibility |
-|---|---|---|
-| 1 — Primary | Question; status badge; five-phase progress tracker; current-stage line; evidence-backed answer with citation chips; "Not established" claims; Limitations; budget summary | Always visible |
-| 2 — Secondary | Research Plan; Retrieved Sources; Investigation Activity; Usage and Cost Budget | Collapsible panels / tabs |
-| 3 — Evidence details | Evidence Drawer | Opened by citation |
+**Header:** breadcrumb link to the library, lifecycle chip (plus Sensitive / Archived chips), the investigation title as the page's only `h1`, and actions:
+- **Edit** opens a dialog with title, question and description.
+- **Run settings** opens a dialog with the five limits, each showing its hard ceiling ("Limits are ceilings, not targets.").
+- **Cancel** appears only while a run is active and asks for confirmation ("Evidence collected so far is kept.").
+- **Start research** is primary. A hint underneath explains why it can't run when no plan exists; other blocks are explained once in the notices area.
 
-**Vertical order of Layer 1 (top to bottom):**
+**Left outline** (`aside` "Investigation outline"): the question in Source Serif, then the description; the saved plan steps; the latest run's status, a vertical five-phase tracker (§9.2) with the stage line, and real usage counts (searches, pages, model calls, estimated tokens).
 
-1. **Question block** — "Research question" kicker, question text in `read-lead`, edit/rename affordance (title only; the question is immutable after creation in MVP — assumption, DQ-07).
-2. **Status + tracker** — Status badge, phase tracker (§9.2), stage line (§9.3), run actions (Cancel).
-3. **Budget summary strip** — compact one-line meters (§9.5), "Details" opens Budget tab.
-4. **Notice region** — state banner when the run is not normally in progress or complete (§9.6).
-5. **Answer** — Summary lead, Findings as claim blocks (§9.4), "Not established" items inline in place, **Limitations** card always present once an answer exists (Source Serif; lists important limits including insufficient evidence needs, FR-06.5, ERR-07), disclaimer "AI-generated research aid. Verify important findings using original sources."
-6. **Report link** — Card "Report" with latest version and a link to the Report tab once a report exists.
+**Centre:** a notices area (one waiting message while a run is active, the single reason new research is blocked, sensitive-mode limits, errors), the sticky section tabs and the active tab panel:
+- **Plan:** Starting point (mode disclosure, Generate plan, replace confirmation), plan editor, latest run (status message per §9.6, activity log), Manage.
+- **Findings:** the AI disclaimer, summary in Source Serif, and claim cards. Each card shows "Finding n", a Cited / Not established chip, the text and citation chips.
+- **Sources** and **Report:** as in §8.5 and §8.8.
+- **Evidence:** evidence review and fixture collection.
 
-**Secondary panel** — Radix Tabs: *Plan · Sources · Activity · Budget*. Tab counts shown in labels where meaningful ("Sources (9)"). Layout per breakpoint in §6.3.
+**Right evidence inspector** (`aside`): driven by `?evidence=`. With nothing selected, it explains how to use it. When a citation is chosen it shows, in this order:
+- the source title and status, with "Open original" (new tab, `noopener noreferrer`);
+- previous/next when a finding has several citations;
+- the saved passage with the exact quotation highlighted (never guessed);
+- the retrieval time and location;
+- three automatic checks: Passage found in saved sources · Belongs to this investigation · Quotation matches saved text;
+- the caveat that the checks don't confirm the claim is true;
+- "Cited by" links back to findings.
 
-**Evidence drawer** — see §8.6.
+Focus moves to the inspector heading when it opens. Escape or the close button closes it and returns focus to the chip that opened it. On widths below 1280 px it is an overlay drawer.
 
-**Actions:** Start research (when ready), Cancel (while Running/Planning), open Report, open Sources, open any citation. **Resume** and **Restart** per §9.6 and §19.
+**States:** loading skeleton; "Investigation unavailable" with a retry; per-tab loading, empty and error states; the §9.6 status matrix for runs.
 
-**States:** see §9.6 (status matrix) and the per-component states in §12. Initial load: skeleton for question block, tracker and answer. Not found (`:id` invalid): "This investigation doesn't exist or was deleted." + Dashboard link.
-
-**Accessibility:** one `h1` (investigation title); answer region `<article aria-labelledby>`; tracker is an ordered list (§9.2); stage/status announcements per §13.6; citation chips are buttons (§10); focus management per §10.6.
-
----
+**Accessibility:** one `h1`; tabs as links with `aria-current`; the tracker is an ordered list named "Research progress"; citation chips are buttons named "Open evidence P-…" with `aria-pressed` on the one being shown.
 
 ### 8.4 Research Plan Panel
 

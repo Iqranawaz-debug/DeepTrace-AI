@@ -26,7 +26,7 @@ export function ManageInvestigation({ investigation, onChanged }: { investigatio
   }
   async function remove() {
     setBusy(true); setError('')
-    try { await deleteInvestigation(investigation.id, typed); setOpen(false); void navigate('/') }
+    try { await deleteInvestigation(investigation.id, typed); setOpen(false); void navigate('/investigations') }
     catch (failure) { setError(failure instanceof ApiError ? [failure.message, failure.detail].filter(Boolean).join(' ') : 'Deletion could not be confirmed. Reload to check.') }
     finally { setBusy(false) }
   }

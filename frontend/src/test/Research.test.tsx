@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { ResearchPanel } from '../features/research/ResearchPanel'
+import { renderWorkspace } from './workspace'
 import { ProviderSetup } from '../features/settings/ProviderSetup'
 import { ManageInvestigation } from '../features/investigations/ManageInvestigation'
 import { UnsavedChanges } from '../features/investigations/InvestigationForm'
@@ -12,6 +12,7 @@ vi.mock('../api/client', async importOriginal => ({
   ...await importOriginal<typeof api>(),
   getProviders: vi.fn(), listRuns: vi.fn(), getProgress: vi.fn(), getPlan: vi.fn(), generatePlan: vi.fn(), startResearch: vi.fn(), cancelCollection: vi.fn(),
   getGeneratedAnswer: vi.fn(), listGeneratedReports: vi.fn(), getGeneratedReport: vi.fn(), saveCredential: vi.fn(), removeCredential: vi.fn(), grantConsent: vi.fn(), revokeConsent: vi.fn(),
+  getInvestigation: vi.fn(), listEvidencePassages: vi.fn(), getAnswer: vi.fn(), listReports: vi.fn(), listNotes: vi.fn(),
   setSensitive: vi.fn(), setArchived: vi.fn(), deleteInvestigation: vi.fn(), getRunEvents: vi.fn(), getStorage: vi.fn(),
 }))
 
@@ -23,6 +24,8 @@ const plan: api.Plan = { id: 'p', revision_no: 1, items: [{ id: 'a', sub_questio
 const run = (over: Partial<api.CollectionRun>): api.CollectionRun => ({ id: 'r', status: 'running', mode: 'mock', created_at: '2026-11-02T00:00:00+00:00', plan_revision: 1, question_snapshot: 'Q', urls: [], error_code: null, scope: 'research_pipeline', ...over })
 const progress = (over: Partial<api.Progress> = {}): api.Progress => ({ status: 'running', error_code: null, cancel_requested: false, mode: 'mock', scope: 'research_pipeline', budgets, narrow_reason: null, queries: [{ query_text: 'first query', status: 'completed', searched_at: '2026-11-02T00:00:01+00:00', results_count: 2 }], stages: [{ stage_key: 'discover', stage_revision: 1, status: 'completed', completed_at: 'now', error_code: null }], usage: { search_attempts: 2, model_attempts: 0, pages_retrieved: 1, pages_attempted: 3, estimated_tokens: 1200 }, ...over })
 
+const investigationOf = (over: Partial<api.Investigation> = {}): api.Investigation => ({ id: 'inv', title: 'Study', question: 'Does fixture text exist?', description: null, status: 'draft', created_at: '2026-11-02T00:00:00+00:00', updated_at: '2026-11-02T00:00:00+00:00', ...over })
+
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(api.getProviders).mockResolvedValue(mockProviders)
@@ -33,21 +36,32 @@ beforeEach(() => {
   vi.mocked(api.listGeneratedReports).mockResolvedValue([])
   vi.mocked(api.cancelCollection).mockResolvedValue(undefined)
   vi.mocked(api.getRunEvents).mockResolvedValue([])
+  vi.mocked(api.getInvestigation).mockResolvedValue(investigationOf())
+  vi.mocked(api.listEvidencePassages).mockResolvedValue([])
+  vi.mocked(api.listNotes).mockResolvedValue([])
+  vi.mocked(api.listReports).mockResolvedValue([])
+  vi.mocked(api.getAnswer).mockResolvedValue({ id: null, revision_no: 0, authorship: 'user', mode: 'mock', updated_at: null, claims: [], scope_text: null, methodology_text: null, summary_text: null, limitations_text: null, next_steps_text: null })
   vi.mocked(api.getStorage).mockResolvedValue({ bytes: 1500000, warning_bytes: 500000000, over_warning: false })
 })
 
-function panel(props: Partial<React.ComponentProps<typeof ResearchPanel>> = {}) {
-  return render(<RouterProvider router={createMemoryRouter([{ path: '*', element: <ResearchPanel investigationId="inv" plan={plan} sensitive={false} archived={false} onPlanGenerated={() => {}} {...props} /> }])} />)
+function panel({ sensitive = false, plan: saved, path }: { sensitive?: boolean; plan?: api.Plan; path?: string } = {}) {
+  vi.mocked(api.getInvestigation).mockResolvedValue(investigationOf({ sensitive }))
+  if (saved) vi.mocked(api.getPlan).mockResolvedValue(saved)
+  return renderWorkspace(path)
 }
+const findings = '/investigations/inv/findings'
+const inspector = () => screen.findByRole('complementary', { name: /^Evidence( P-\d+)?$/ })
 
 it('shows limits before running and starts with the saved revision and chosen budgets', async () => {
   const user = userEvent.setup()
   panel()
+  await user.click(await screen.findByRole('button', { name: 'Run settings' }))
   const pages = await screen.findByLabelText(/^Pages fetched/)
   expect(pages).toHaveValue(10)
   expect(pages).toHaveAttribute('max', '15')
   expect(screen.getByText(/Nothing leaves this computer/)).toBeVisible()
   await user.clear(pages); await user.type(pages, '3')
+  await user.click(screen.getByRole('button', { name: 'Done' }))
   await user.click(screen.getByRole('button', { name: 'Start research' }))
   await waitFor(() => expect(api.startResearch).toHaveBeenCalled())
   const [investigation, key, revision, chosen] = vi.mocked(api.startResearch).mock.calls[0]
@@ -88,9 +102,9 @@ it('shows live progress, says Cancelling until persisted, and marks simulated ru
   const user = userEvent.setup()
   vi.mocked(api.listRuns).mockResolvedValue([run({})])
   panel()
-  expect(await screen.findByText(/SIMULATED · Running/)).toBeVisible()
-  expect(screen.getByText(/Search attempts 2/)).toBeVisible()
-  expect(screen.getByText(/1,200 tokens \(estimate\)/)).toBeVisible()
+  expect((await screen.findAllByText(/SIMULATED · Running/))[0]).toBeVisible()
+  expect(screen.getByText(/2 searches/)).toBeVisible()
+  expect(screen.getByText(/~1,200 tokens/)).toBeVisible()
   vi.mocked(api.getProgress).mockResolvedValue(progress({ cancel_requested: true }))
   await user.click(screen.getByRole('button', { name: 'Cancel' }))
   const dialog = await screen.findByRole('dialog', { name: 'Cancel this run?' })
@@ -99,14 +113,14 @@ it('shows live progress, says Cancelling until persisted, and marks simulated ru
   expect(api.cancelCollection).not.toHaveBeenCalled()
   await user.click(within(dialog).getByRole('button', { name: 'Cancel run' }))
   expect(api.cancelCollection).toHaveBeenCalledWith('r', 'inv')
-  expect(await screen.findByText(/SIMULATED · Cancelling/)).toBeVisible()
+  expect((await screen.findAllByText(/SIMULATED · Cancelling/))[0]).toBeVisible()
 })
 
 it('never calls a stopped run complete, and says what happened and what was kept', async () => {
   vi.mocked(api.listRuns).mockResolvedValue([run({ status: 'budget_reached', error_code: 'page_budget' })])
   vi.mocked(api.getProgress).mockResolvedValue(progress({ status: 'budget_reached', error_code: 'page_budget' }))
   panel()
-  expect(await screen.findByText(/SIMULATED · Budget reached/)).toBeVisible()
+  expect((await screen.findAllByText(/SIMULATED · Budget reached/))[0]).toBeVisible()
   expect(screen.getByText(/The page limit was reached\. Partial results are shown and may be incomplete\./)).toBeVisible()
   expect(screen.queryByText(/Research completed/)).not.toBeInTheDocument()
   expect(screen.getByRole('list', { name: 'Research progress' })).toHaveTextContent('ReadBudget reached')
@@ -122,19 +136,22 @@ it('renders hostile model and source text inertly with honest evidence labels', 
   const summary: api.GeneratedReportSummary = { version_no: 1, run_id: 'r', created_at: '2026-11-02T00:00:00+00:00', markdown_sha256: 'a'.repeat(64), mode: 'mock', prompt_version: 'synthesize-v1', report_schema_version: 'generated-report-v1', validation_summary: { citations: 1, quotations_matched: 0, claims_not_established: 1 } }
   vi.mocked(api.listGeneratedReports).mockResolvedValue([summary])
   vi.mocked(api.getGeneratedReport).mockResolvedValue({ ...summary, markdown_text: `# Title\n${HOSTILE}`, current_warnings: [] })
-  panel()
+  const first = panel({ path: findings })
   expect(await screen.findByText(/SIMULATED · Not real research/)).toBeVisible()
   expect(screen.getByText('Cited')).toBeVisible()
   expect(screen.getByText('Not established')).toBeVisible()
   expect(screen.getAllByText('2 citation(s) failed validation and were suppressed.')).toHaveLength(2)
   expect(document.querySelector('img, script:not([src])')).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Open evidence P-0001' }))
+  const dialog = await inspector()
+  expect(within(dialog).getByText(/doesn't show that the source supports the claim/)).toBeVisible()
+  expect(within(dialog).getByText(/They don't confirm the claim is true\./)).toBeVisible()
+  expect(dialog.querySelector('img')).toBeNull()
+  first.unmount()
+  panel({ path: '/investigations/inv/report' })
   const article = await screen.findByRole('article', { name: 'Research report version 1' })
   expect(within(article).getByRole('link', { name: 'Download report (.md)' })).toHaveAttribute('href', '/api/investigations/inv/generated-reports/1/download')
-  await user.click(screen.getByRole('button', { name: 'Open evidence P-0001' }))
-  const dialog = await screen.findByRole('dialog')
-  expect(within(dialog).getByText(/doesn't show that the source supports the claim/)).toBeVisible()
-  expect(within(dialog).getByText("These checks confirm the reference and wording. They don't confirm the claim is true.")).toBeVisible()
-  expect(dialog.querySelector('img')).toBeNull()
+  expect(document.querySelector('img, script:not([src])')).toBeNull()
   expect((window as unknown as { __pwned?: number }).__pwned).toBeUndefined()
 })
 
@@ -186,9 +203,9 @@ const claimWith = (ordinal: number, citations: api.GeneratedCitation[]): api.Gen
 it('highlights the exact excerpt, links the original safely and shows the three checks', async () => {
   const user = userEvent.setup()
   vi.mocked(api.getGeneratedAnswer).mockResolvedValue(answerWith([claimWith(1, [citationOf()])]))
-  panel()
+  panel({ path: findings })
   await user.click(await screen.findByRole('button', { name: 'Open evidence P-0001' }))
-  const dialog = await screen.findByRole('dialog')
+  const dialog = await inspector()
   expect(within(dialog).getByRole('heading', { name: 'Evidence P-0001' })).toHaveFocus()
   expect(dialog.querySelector('mark')?.textContent).toBe('exact words')
   const link = within(dialog).getByRole('link', { name: /Open original/ })
@@ -204,9 +221,9 @@ it('highlights the exact excerpt, links the original safely and shows the three 
 it('never guesses a highlight and withholds evidence for an invalid reference', async () => {
   const user = userEvent.setup()
   vi.mocked(api.getGeneratedAnswer).mockResolvedValue(answerWith([claimWith(1, [citationOf({ quoted_text: 'not in passage' }), citationOf({ passage_id: 'p2', display_id: 'P-0002', reference_valid: false, invalid_reason: 'passage_changed', passage_text: 'SECRET CHANGED TEXT', quoted_text: null, quote_valid: null })])]))
-  panel()
+  panel({ path: findings })
   await user.click(await screen.findByRole('button', { name: 'Open evidence P-0001' }))
-  const dialog = await screen.findByRole('dialog')
+  const dialog = await inspector()
   expect(dialog.querySelector('mark')).toBeNull()
   expect(within(dialog).getByText("The exact excerpt couldn't be located. The full passage is shown.")).toBeVisible()
   await user.click(within(dialog).getByRole('button', { name: /Next citation/ }))
@@ -218,14 +235,14 @@ it('never guesses a highlight and withholds evidence for an invalid reference', 
 
 it('opens evidence from a ?evidence= link, explains a missing passage, and lists what cites it', async () => {
   vi.mocked(api.getGeneratedAnswer).mockResolvedValue(answerWith([claimWith(1, [citationOf()]), claimWith(2, [citationOf()])]))
-  const element = <ResearchPanel investigationId="inv" plan={plan} sensitive={false} archived={false} onPlanGenerated={() => {}} />
-  const first = render(<RouterProvider router={createMemoryRouter([{ path: '*', element }], { initialEntries: ['/?evidence=p1'] })} />)
-  const dialog = await screen.findByRole('dialog')
+  const first = panel({ path: `${findings}?evidence=p1` })
+  const dialog = await inspector()
+  expect(await within(dialog).findByRole('heading', { name: 'Evidence P-0001' })).toHaveFocus()
   expect(within(dialog).getByRole('button', { name: 'Finding 1: Claim 1' })).toBeVisible()
   expect(within(dialog).getByRole('button', { name: 'Finding 2: Claim 2' })).toBeVisible()
   first.unmount()
-  render(<RouterProvider router={createMemoryRouter([{ path: '*', element }], { initialEntries: ['/?evidence=gone'] })} />)
-  expect(await within(await screen.findByRole('dialog')).findByText("This passage isn't available in this investigation.")).toBeVisible()
+  panel({ path: `${findings}?evidence=gone` })
+  expect(await within(await inspector()).findByText("This passage isn't available in this investigation.")).toBeVisible()
 })
 
 it('shows five phases with real counts and a reverse-chronological activity log', async () => {
@@ -277,13 +294,12 @@ it('shows one clear message while Gemini drafts a plan, not contradictory hints'
   expect(screen.getByRole('button', { name: 'Start research' })).toBeDisabled()
 })
 
-it('tells the page when a run finishes so its status label updates', async () => {
-  const onRunFinished = vi.fn()
+it('re-reads the investigation when a run finishes so its status label updates', async () => {
   vi.mocked(api.listRuns).mockResolvedValue([run({})])
-  panel({ onRunFinished })
-  expect(await screen.findByText(/SIMULATED · Running/)).toBeVisible()
-  expect(onRunFinished).not.toHaveBeenCalled()
+  panel()
+  expect((await screen.findAllByText(/SIMULATED · Running/))[0]).toBeVisible()
+  expect(api.getInvestigation).toHaveBeenCalledTimes(1)
   vi.mocked(api.listRuns).mockResolvedValue([run({ status: 'completed' })])
   vi.mocked(api.getProgress).mockResolvedValue(progress({ status: 'completed' }))
-  await waitFor(() => expect(onRunFinished).toHaveBeenCalledTimes(1), { timeout: 5000 })
+  await waitFor(() => expect(api.getInvestigation).toHaveBeenCalledTimes(2), { timeout: 5000 })
 })
